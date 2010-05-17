@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
+<vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
+<structures>
+<model name="Top model" type="coupled" x="0" y="0" width="1377" height="577"  >
+<submodels>
+<model name="meteo" type="atomic" conditions="condMeteo" dynamics="dynMeteo" x="36" y="46" width="100" height="120" >
+<out>
+ <port name="ETP" />
+ <port name="RH" />
+ <port name="Rad" />
+ <port name="Rain" />
+ <port name="TempMax" />
+ <port name="TempMin" />
+</out>
+</model>
+<model name="Crop" type="coupled" x="275" y="43" width="1006" height="494"  >
+<in>
+ <port name="ETP" />
+ <port name="RH" />
+ <port name="Rad" />
+ <port name="Rain" />
+ <port name="TempMax" />
+ <port name="TempMin" />
+</in>
+<out>
+ <port name="CropDeseased" />
+</out>
+<submodels>
+<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynCropClimate" observables="obsCropClimate" x="204" y="41" width="100" height="60" >
+<in>
+ <port name="RH" />
+ <port name="TempMean" />
+</in>
+<out>
+ <port name="ActionRH" />
+ <port name="ActionTemp" />
+</out>
+</model>
+<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynPassive" x="656" y="117" width="100" height="75" >
+<in>
+ <port name="AreaActive" />
+ <port name="AreaDeseased" />
+</in>
+<out>
+ <port name="CropDeseased" />
+ <port name="LAI" />
+ <port name="RLAI" />
+</out>
+</model>
+<model name="CropPhenology" type="atomic" conditions="condCropPhenology,condEqDiff,condParametres" dynamics="dynCropPhenology" observables="obsCropPhenology" x="96" y="227" width="100" height="75" >
+<in>
+ <port name="TempMax" />
+ <port name="TempMin" />
+</in>
+<out>
+ <port name="TempEff" />
+ <port name="TempMean" />
+ <port name="ThermalTime" />
+</out>
+</model>
+<model name="Unit" type="atomic" conditions="condEqDiff,condParametres,condUnit" dynamics="dynUnit" observables="obsUnit" x="418" y="123" width="100" height="105" >
+<in>
+ <port name="ActionTemp" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="AreaDiseased" />
+ <port name="AreaInfectious" />
+ <port name="AreaLatent" />
+ <port name="AreaRemoved" />
+</out>
+</model>
+</submodels>
+<connections>
+<connection type="input">
+ <origin model="Crop" port="RH" />
+ <destination model="CropClimate" port="RH" />
+</connection>
+<connection type="input">
+ <origin model="Crop" port="TempMax" />
+ <destination model="CropPhenology" port="TempMax" />
+</connection>
+<connection type="input">
+ <origin model="Crop" port="TempMin" />
+ <destination model="CropPhenology" port="TempMin" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempMean" />
+ <destination model="CropClimate" port="TempMean" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="Unit" port="AreaActive" />
+ <destination model="CropLeafArea" port="AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit" port="AreaDiseased" />
+ <destination model="CropLeafArea" port="AreaDeseased" />
+</connection>
+</connections>
+</model>
+</submodels>
+<connections>
+<connection type="internal">
+ <origin model="meteo" port="RH" />
+ <destination model="Crop" port="RH" />
+</connection>
+<connection type="internal">
+ <origin model="meteo" port="TempMax" />
+ <destination model="Crop" port="TempMax" />
+</connection>
+<connection type="internal">
+ <origin model="meteo" port="TempMin" />
+ <destination model="Crop" port="TempMin" />
+</connection>
+</connections>
+</model>
+</structures>
+<dynamics>
+<dynamic name="dynCropClimate" library="CropClimate" model="CropClimate" package="archidemio" type="local"  />
+<dynamic name="dynCropLeafArea" library="CropLeafArea" model="" package="archidemio" type="local"  />
+<dynamic name="dynCropPhenology" library="CropPhenology" model="CropPhenology" package="archidemio" type="local"  />
+<dynamic name="dynMeteo" library="meteo" model="GenericWithHeader" package="meteo" type="local"  />
+<dynamic name="dynPassive" library="emptylibrary" model="simple" package="archidemio" type="local"  />
+<dynamic name="dynUnit" library="Unit" model="" package="archidemio" type="local"  />
+</dynamics>
+<experiment name="exp" duration="200.000000000000000" begin="2455198.000000000000000" combination="linear" seed="1" >
+<replicas seed="581869302" number="1" />
+<conditions>
+<condition name="condCropClimate" >
+ <port name="mode" >
+<string>port</string>
+</port>
+ <port name="variables" >
+<set><set><string>ActionRH</string></set><set><string>ActionTemp</string></set></set>
+</port>
+</condition>
+<condition name="condCropLeafArea" >
+ <port name="mode" >
+<string>port</string>
+</port>
+ <port name="variables" >
+<set><set><string>CropDeseased</string></set><set><string>LAI</string></set><set><string>RLAI</string></set></set>
+</port>
+</condition>
+<condition name="condCropPhenology" >
+ <port name="mode" >
+<string>port</string>
+</port>
+ <port name="variables" >
+<set><set><string>TempEff</string></set><set><string>TempMean</string></set><set><string>ThermalTime</string></set></set>
+</port>
+</condition>
+<condition name="condEqDiff" >
+ <port name="size" >
+<integer>2</integer>
+</port>
+ <port name="time-step" >
+<double>1.000000000000000</double>
+</port>
+</condition>
+<condition name="condMeteo" >
+ <port name="begin" >
+<integer>2</integer>
+</port>
+ <port name="column_separator" >
+<string>;</string>
+</port>
+ <port name="columns" >
+<map><key name="etp"><string>ETP</string></key><key name="hr"><string>RH</string></key><key name="p"><string>Rain</string></key><key name="rg"><string>Rad</string></key><key name="tn"><string>TempMin</string></key><key name="tx"><string>TempMax</string></key></map>
+</port>
+ <port name="day_column" >
+<integer>1</integer>
+</port>
+ <port name="meteo_file" >
+<string>2001_MTP_A.txt</string>
+</port>
+ <port name="mode" >
+<string>name</string>
+</port>
+ <port name="month_column" >
+<integer>0</integer>
+</port>
+ <port name="time-step" >
+<map><key name="unit"><string>day</string></key><key name="value"><double>1.000000000000000</double></key></map>
+</port>
+ <port name="variables" >
+<set><set><string>ETP</string><double>0.000000000000000</double></set><set><string>RH</string><double>0.000000000000000</double></set><set><string>TempMin</string><double>0.000000000000000</double></set><set><string>TempMax</string><double>0.000000000000000</double></set><set><string>Rain</string><double>0.000000000000000</double></set><set><string>Rad</string><double>0.000000000000000</double></set></set>
+</port>
+</condition>
+<condition name="condParametres" >
+ <port name="C_Density" >
+<double>5.000000000000000</double>
+</port>
+ <port name="E_InfectiousPeriod" >
+<double>0.300000000000000</double>
+</port>
+ <port name="E_Init" >
+<double>100.000000000000000</double>
+</port>
+ <port name="E_LatentPeriod" >
+<double>0.300000000000000</double>
+</port>
+ <port name="E_RateDeseaseTransmission" >
+<double>0.050000000000000</double>
+</port>
+ <port name="M_TempOpt" >
+<double>25.000000000000000</double>
+</port>
+ <port name="P_AreaMax" >
+<double>1.000000000000000</double>
+</port>
+ <port name="P_SlopeExpansion" >
+<double>0.020000000000000</double>
+</port>
+ <port name="P_SlopeSenescence" >
+<double>0.040000000000000</double>
+</port>
+ <port name="P_TempBase" >
+<double>4.000000000000000</double>
+</port>
+ <port name="P_UnitTTExp" >
+<double>300.000000000000000</double>
+</port>
+ <port name="P_UnitTTSen" >
+<double>1000.000000000000000</double>
+</port>
+</condition>
+<condition name="condUnit" >
+ <port name="mode" >
+<string>port</string>
+</port>
+ <port name="variables" >
+<set><set><string>AreaHealthy</string></set><set><string>AreaExpansion</string></set><set><string>AreaSenescence</string></set><set><string>AreaActive</string></set><set><string>AreaLatent</string></set><set><string>AreaInfectious</string></set><set><string>AreaRemoved</string></set><set><string>RateAreaExpansion</string></set><set><string>RateAreaSenescence</string></set><set><string>RateDeseaseTransmission</string></set></set>
+</port>
+</condition>
+</conditions>
+<views>
+<outputs>
+<output name="vueCropPhenology" location="" format="local" plugin="csv" />
+
+<output name="vueDebug" location="" format="local" plugin="storage" />
+
+</outputs>
+<observables>
+<observable name="obsCropClimate" >
+<port name="ActionRH" />
+
+<port name="ActionTemp" >
+ <attachedview name="vueDebug" />
+</port>
+
+</observable>
+
+<observable name="obsCropLeafArea" >
+<port name="CropDeseased" />
+
+<port name="LAI" />
+
+<port name="RLAI" />
+
+</observable>
+
+<observable name="obsCropPhenology" >
+<port name="TempEff" >
+ <attachedview name="vueCropPhenology" />
+</port>
+
+<port name="TempMean" >
+ <attachedview name="vueCropPhenology" />
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="ThermalTime" >
+ <attachedview name="vueCropPhenology" />
+ <attachedview name="vueDebug" />
+</port>
+
+</observable>
+
+<observable name="obsUnit" >
+<port name="AreaActive" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="AreaExpansion" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="AreaHealthy" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="AreaInfectious" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="AreaLatent" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="AreaRemoved" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="AreaSenescence" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="RateAreaExpansion" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="RateAreaSenescence" >
+ <attachedview name="vueDebug" />
+</port>
+
+</observable>
+
+</observables>
+<view name="vueCropPhenology" output="vueCropPhenology" type="timed" timestep="1.000000000000000" />
+
+<view name="vueDebug" output="vueDebug" type="timed" timestep="1.000000000000000" />
+
+</views>
+</experiment>
+</vle_project>
