@@ -52,7 +52,7 @@ public:
 		TempEff = createSync("TempEff"); 
 		ThermalTime = createSync("ThermalTime"); 
         ActionTemp = createSync("ActionTemp");
-        //InDeposition = createSync("in");
+        InDeposition = createSync("InDeposition");
         
         // Variables d'état
         RateAreaExpansion = createVar("RateAreaExpansion");
@@ -66,7 +66,7 @@ public:
         AreaSenescence = createVar("AreaSenescence");
         AreaDeseased = createVar("AreaDeseased");
         RateDeseaseTransmission = createVar("RateDeseaseTransmission");
-        //OutDeposition = createVar("in");
+        OutDeposition = createVar("OutDeposition");
     }
 
     virtual ~Unit()
@@ -102,16 +102,16 @@ virtual void compute(const vd::Time& /*time*/)
         AreaHealthy(-1) 
         +RateAreaExpansion() 
         -(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) 
+        -(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1))
         -(RateAreaSenescence() * AreaHealthy(-1)/AreaActive(-1)),0);
-        //-(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1))
         
     // Surface latente, création par l'infection, destruction par la propagation du pathogene et la senescence
     AreaLatent = fmax(
         AreaLatent(-1) 
         +(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1))
+        +(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1))
         -(1/E_LatentPeriod * AreaLatent(-1)) 
         -(RateAreaSenescence() * AreaLatent(-1)/AreaActive(-1)),0);
-        //+(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1))
 
         
     // Surface infectieuse, creation par la propagation du pathogene, destruction par le pathogene
@@ -138,8 +138,7 @@ virtual void compute(const vd::Time& /*time*/)
     AreaDeseased = AreaLatent() + AreaInfectious() +(AreaRemoved() - AreaSenescence());
     
     // Emission de spores
-    // OutDeposition = E_RateAlloDeposition * AreaInfectious();
-    
+    OutDeposition = E_RateAlloDeposition * AreaInfectious();
 }
 //@@end:compute@@
 
@@ -157,8 +156,7 @@ virtual void initValue(const vd::Time& /*time*/)
     AreaSenescence = 0.0;
     AreaDeseased = 0.0;
     RateDeseaseTransmission = E_RateDeseaseTransmission;    
-    // OutDeposition = 0;
-    
+    OutDeposition = 0;
 }
 //@@end:initValue@@
 
@@ -180,7 +178,7 @@ private:
     Sync ActionTemp;
     Sync TempEff;
     Sync ThermalTime;
-    //Sync InDeposition;
+    Sync InDeposition;
     
     Var RateAreaExpansion;
     Var RateAreaSenescence;
@@ -193,7 +191,7 @@ private:
     Var AreaSenescence;
     Var AreaDeseased;
     Var RateDeseaseTransmission;
-    //Var OutDeposition;
+    Var OutDeposition;
     
 };
 

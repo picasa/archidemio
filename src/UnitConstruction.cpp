@@ -22,6 +22,11 @@
 
 #include <vle/devs/Executive.hpp>
 #include <vle/devs/ExecutiveDbg.hpp>
+#include <vle/translator/GraphTranslator.hpp>
+#include <vle/utils.hpp>
+#include <vle/devs.hpp>
+#include <vle/vpz.hpp>
+#include <boost/numeric/conversion/cast.hpp>
 
 class Executive : public vle::devs::Executive
 {
@@ -182,5 +187,79 @@ private:
     double P_UnitTTSen;
 };
 
-  
+
+
+class ExecutiveGraph : public vle::devs::Executive
+{
+public:
+    ExecutiveGraph(const vle::devs::ExecutiveInit& mdl,
+                   const vle::devs::InitEventList& events)
+        : vle::devs::Executive(mdl, events)
+    {
+    }
+
+    virtual ~ExecutiveGraph()
+    {}
+
+    virtual vle::devs::Time init(const vle::devs::Time& /* time */)
+    {
+        vle::translator::GraphTranslator tr(*this);
+
+        vle::value::Map mp;
+        mp.addString("prefix", "node");
+        mp.addInt("number", 6);
+        mp.addString("port", "in-out");
+        
+        // 6 noeuds, 1 avec 2 voisins
+        mp.addString("adjacency matrix",
+                     " 0 1 0 0 0 0"
+                     " 0 0 1 0 0 0"
+                     " 0 0 0 1 0 0"
+                     " 0 0 0 0 1 0"
+                     " 0 0 0 0 0 1"
+                     " 0 0 0 0 0 0");
+        mp.addString("classes", "Unit Unit Unit Unit Unit Unit");
+	
+        tr.translate(mp); 
+	
+        // Connexions  
+        // Initiation sur certains noeuds
+        addConnection("Initiation", "AreaLatent", "node-0", "perturb");
+        addConnection("Initiation", "AreaLatent", "node-5", "perturb");
+        
+        // Connexions autres modèles -> noeuds
+        // TODO : boucle
+        addConnection("CropClimate", "ActionTemp", "node-0", "ActionTemp");
+        addConnection("CropPhenology", "TempEff", "node-0", "TempEff");
+        addConnection("CropPhenology", "ThermalTime", "node-0", "ThermalTime");
+        
+        addConnection("CropClimate", "ActionTemp", "node-1", "ActionTemp");
+        addConnection("CropPhenology", "TempEff", "node-1", "TempEff");
+        addConnection("CropPhenology", "ThermalTime", "node-1", "ThermalTime");
+        
+        addConnection("CropClimate", "ActionTemp", "node-2", "ActionTemp");
+        addConnection("CropPhenology", "TempEff", "node-2", "TempEff");
+        addConnection("CropPhenology", "ThermalTime", "node-2", "ThermalTime");
+        
+        addConnection("CropClimate", "ActionTemp", "node-3", "ActionTemp");
+        addConnection("CropPhenology", "TempEff", "node-3", "TempEff");
+        addConnection("CropPhenology", "ThermalTime", "node-3", "ThermalTime");
+        
+        addConnection("CropClimate", "ActionTemp", "node-4", "ActionTemp");
+        addConnection("CropPhenology", "TempEff", "node-4", "TempEff");
+        addConnection("CropPhenology", "ThermalTime", "node-4", "ThermalTime");
+        
+        addConnection("CropClimate", "ActionTemp", "node-5", "ActionTemp");
+        addConnection("CropPhenology", "TempEff", "node-5", "TempEff");
+        addConnection("CropPhenology", "ThermalTime", "node-5", "ThermalTime");
+        
+        // Visualiser le VPZ qui correspond à celui crée par Executive
+        std::ofstream file("output.vpz");
+        dump(file);
+
+        return vle::devs::Time::infinity;
+    }
+};
+
 DECLARE_NAMED_EXECUTIVE_DBG(UnitConstruction, Executive)
+DECLARE_NAMED_EXECUTIVE_DBG(UnitConstructionGraph, ExecutiveGraph)  

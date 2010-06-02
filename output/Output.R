@@ -9,6 +9,7 @@ library(rvle)
 
 
 ## Paramétrage R
+SimLength = 150
 HLIR = c("AreaHealthy","AreaLatent","AreaInfectious","AreaRemoved")
 ObsTime = c(30, 60, 90, 120, 150)
 
@@ -20,7 +21,7 @@ f <- rvle.open("archidemio_0.5.vpz", "archidemio")
 rvle.sim <- function (
 	SimLength = 150,
 	nVarNormal = 3, # variables non Executive (sans les index de temps)
-	nVarExec = 9,
+	nVarExec = 10,
 	nExec = 24
 	) {
 	sim <- rvle.run(f)
@@ -90,13 +91,38 @@ dev.off()
 
 ### Analyse simple : un seul paramètre à la fois
 f <- rvle.open("archidemio_0.5.vpz", "archidemio")
-rvle.setRealCondition(f, "condParametres", "E_LatentPeriod", 30)
+rvle.setRealCondition(f, "condParametres", "E_RateAlloDeposition", 0.3)
 sim.l <- rvle.sim()
 xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l")
 
 
 ### Mise en forme sorties numériques
 cast(sim.l, subset=sim.l$variable=="AreaHealthy", time ~ unit)
+
+
+### Essai d'animations de sorties
+# TODO : ggplot ne gère pas les NA ?, soit résoudre, soit commencer plus tard.
+# Données
+sim.l <- rvle.sim()
+sim.l$unit <- as.numeric(sim.l$unit)
+sim.l$variable <- factor (sim.l$variable, levels=HLIR)
+for (i in seq(5,SimLength, by=5)) {
+	# Selection
+	p <- sim.l[(sim.l$variable %in% HLIR==T & sim.l$time==i),]
+	
+	# Graphique
+	png(file=paste("profil_",i,".png", sep=""), width=8, height=3, units="in", res=100, pointsize = 10)
+	trellis.par.set(canonical.theme(color = FALSE))
+	print(xyplot(unit ~ value | variable, data=p, type="l", xlim=c(-0.1,1.1), ylim=c(-1,26), layout=c(4,1)))
+	dev.off()	
+}
+
+
+### Debug sur modèle spatial 2D
+f <- rvle.open("archidemio_0.6.vpz", "archidemio")
+sim.l<-rvle.sim(nExec=6, nVarNormal=2, nVarExec=8)
+xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l")
+
 
 ### Bazar
 ## Import
