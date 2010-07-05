@@ -21,7 +21,7 @@
  */
 
 
-#include <vle/extension/DifferenceEquation.hpp>
+#include <vle/extension/DifferenceEquationDbg.hpp>
 
 using namespace std;
 
@@ -91,6 +91,6 @@ namespace Crop {
 
     };
 }
-DECLARE_NAMED_DYNAMICS(CropPhenology, Crop::CropPhenology); // balise specifique VLE
+DECLARE_NAMED_DIFFERENCE_EQUATION_MULTIPLE_DBG(CropPhenology, Crop::CropPhenology); // balise specifique VLE
 
 

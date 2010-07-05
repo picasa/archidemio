@@ -4,21 +4,20 @@
 #library(gdata)
 library(ggplot2)
 library(lattice)
+library(igraph)
 
 ## Fonctions de simulation
 source("fonctions.R")
 
-
-#### Analyse et graphiques des sorties ####
-
 ## Paramétrage R
-SimLength = 150
 HLIR = c("AreaHealthy","AreaLatent","AreaInfectious","AreaRemoved")
 ObsTime = c(30, 60, 90, 120, 150)
 
+
+#### Analyse et graphiques des sorties  modèle 1D ####
 ## Simulation
 f <- rvle.open("archidemio_0.5.vpz", "archidemio")
-sim.l <- rvle.sim(model=f)
+sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=9)
 
 ### Graphiques
 ## Dynamiques des variables f(temps)
@@ -43,7 +42,10 @@ p <- sim.l[(sim.l$variable %in% HLIR==T & sim.l$time %in% ObsTime==T),]
 p$time <- as.factor(p$time)
 p$unit <- as.numeric(p$unit)
 profils <- ggplot(p, aes(unit, value, group=time))
-profils.gfx <- profils + geom_line(aes(colour=time)) + facet_wrap(~ variable, scales="free", ncol=2) + theme_bw() + coord_flip() + scale_colour_grey()
+profils.gfx <- profils + 
+	geom_line(aes(colour=time)) +
+	facet_wrap(~ variable, scales="free", ncol=2) +
+	theme_bw() + coord_flip() + scale_colour_grey()
 
 
 ## Visualisation : les deux type de vues dynamique + profils
@@ -81,6 +83,114 @@ for (i in seq(5,SimLength, by=5)) {
 
 
 
+
+#### Analyse et graphiques des sorties  modèle 2D ####
+
+## Generer la matrice d'adjacence
+n = 400
+G <- graph.lattice(c(sqrt(n),sqrt(n)))
+M <- get.adjacency(G)
+rownames(M)<-c(1:n)-1
+colnames(M)<-c(1:n)-1
+
+## Passer ces conditions dans VLE
+f <- rvle.open("archidemio_0.6a.vpz", "archidemio")
+
+rvle.setIntegerCondition(f, "condParametres", "E_GridNumber", n)
+rvle.setStringCondition(f, "condParametres", "E_GridClasses", paste(rep("Unit",n), collapse=" "))
+rvle.setStringCondition(f, "condParametres", "E_GridMatrix", paste(as.vector(M), collapse=" "))
+
+rvle.setTupleCondition(f, "condParametres", "E_InitSpace", c(5,255,300))
+
+## Simulation
+#sim <- rvle.run(f)
+system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=9))
+
+## Agrégation des sorties
+# Sur le cycle
+m.i <- aggregate(value ~ unit, data=sim.l, sum, subset=sim.l$variable=="AreaInfectious")
+m.i <- data.frame(
+	x = rep(sqrt(n):1,sqrt(n)),
+	y = rep(1:sqrt(n), each=sqrt(n)),
+	score = m.i$value
+)
+# intégration à différents pas de temps
+m.t <- NULL
+for (t in ObsTime) {
+	d <- sim.l[(sim.l$variable=="AreaInfectious" & sim.l$time <= t ),]
+	tmp <- data.frame(
+		time = as.factor(t),
+		x = rep(sqrt(n):1,sqrt(n)),
+		y = rep(1:sqrt(n), each=sqrt(n)),
+		score = aggregate(value ~ unit, data=d, sum)$value
+	)
+	m.t <- rbind(m.t,tmp)
+}
+# instantanés à différents pas de temps 
+tmp <- sim.l[(sim.l$variable=="AreaInfectious"& sim.l$time %in% ObsTime==T),]
+m.s <- data.frame(
+	time = tmp$time,
+	x = rep(rep(sqrt(n):1,sqrt(n)), each=length(ObsTime)),
+	y = rep(rep(1:sqrt(n), each=sqrt(n)), each=length(ObsTime)),
+	score = tmp$value
+
+)
+
+## Visualisation : matrices + contour
+# intégration
+v <- ggplot(data=m.i, aes(x, y, z = score))
+grid.i <- v + geom_tile(aes(fill = score)) +
+	stat_contour(bins = sqrt(n)/2) +
+	scale_fill_gradient(low="white", high="black") +
+	scale_y_reverse() + opts(aspect.ratio = 1)
+	
+png(file="grid_final.png", width=6, height=6, units="in", res=200, pointsize = 10)
+print(grid.i)
+dev.off()
+
+# evolution & intégration
+v <- ggplot(data=m.t, aes(x, y, z = score))
+grid.t <- v + geom_tile(aes(fill = score)) +
+	facet_wrap(~ time, nrow=1) +
+	scale_fill_gradient(low="white", high="black") +
+	scale_y_reverse() + opts(aspect.ratio = 1)
+	
+png(file="grid_integration.png", width=16, height=4, units="in", res=200, pointsize = 10)
+print(grid.t)
+dev.off()
+	
+# evolution
+v <- ggplot(data=m.s, aes(x, y, z = score))
+grid.s <- v + geom_tile(aes(fill = score)) +
+	facet_wrap(~ time, nrow=1) +
+	scale_fill_gradient(low="white", high="black") +
+	scale_y_reverse() + opts(aspect.ratio = 1)
+	
+png(file="grid_snapshot.png", width=16, height=4, units="in", res=200, pointsize = 10)
+print(grid.s)
+dev.off()
+
+
+## Visualisation : dynamiques
+#xyplot(value ~ time | variable, groups=unit, data=sim.l,
+#	subset=scale=="unit",
+#	scale="free", type="l", auto.key=list(space="right")
+#)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #### DEBUG ####
 
 ### Analyse simple : un seul paramètre à la fois
@@ -93,17 +203,14 @@ xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", s
 cast(sim.l, subset=sim.l$variable=="AreaHealthy", time ~ unit)
 
 
-
-### Debug sur modèle spatial 2D
-f <- rvle.open("archidemio_0.6.vpz", "archidemio")
-sim.l<-rvle.sim(nExec=6, nVarNormal=1, nVarExec=8)
-xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l")
-
-
-
-
 ### Bazar
 ## Import
 # strsplit(colnames(sim), "\\.")
 # sim <- read.table("exp_vueDebug.csv", sep=";", dec=".", header=T, colClasses="numeric") 
 
+# contour
+# m <- melt(volcano)
+# names(m) <- c("x", "y", "z")
+# v <- ggplot(data=m, aes(x, y, z = z)) 
+# v + stat_contour()
+# v + geom_tile(aes(fill = z)) + stat_contour() + scale_fill_gradient(low="black", high="white")

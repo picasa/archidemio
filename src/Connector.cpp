@@ -25,9 +25,10 @@ public:
 			const vle::graph::ConnectionList& inputs = coupledmodel().getInputPortList();
 			vle::graph::ConnectionList::const_iterator it;
 			
+			/* DEBUG : affiche les connections
 			for (it = inputs.begin(); it != inputs.end(); ++it) {
 				std::cout << "model: " << getModel().getParentName() << it->first << std::endl;
-			}
+			}*/
 			
 			for (it = inputs.begin(); it != inputs.end(); ++it) {
 				if (it->first.size() >= 5 and it->first.compare(0, 5, "node-") == 0) {

@@ -22,6 +22,7 @@
 
 
 #include <vle/extension/DifferenceEquation.hpp>
+#include <vle/extension/DifferenceEquationDbg.hpp>
 
 namespace Crop {
 
@@ -77,6 +78,6 @@ namespace Crop {
 
     };
 }
-DECLARE_NAMED_DYNAMICS(CropClimate, Crop::CropClimate); // balise specifique VLE
+DECLARE_NAMED_DIFFERENCE_EQUATION_MULTIPLE_DBG(CropClimate, Crop::CropClimate); // balise specifique VLE
 
 

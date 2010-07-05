@@ -21,7 +21,7 @@
  */
 
 
-#include <vle/extension/DifferenceEquation.hpp>
+#include <vle/extension/DifferenceEquationDbg.hpp>
 
 namespace Layer {
 
@@ -95,6 +95,6 @@ namespace Layer {
 	    double P_LayerSen; /**< Paramètre: Temp demi-expansion - demi-senescence, Unite: degres.jours */
     };
 }
-DECLARE_NAMED_DYNAMICS(LayerPhenology, Layer::LayerPhenology); // balise specifique VLE
+DECLARE_NAMED_DIFFERENCE_EQUATION_MULTIPLE_DBG(LayerPhenology, Layer::LayerPhenology); // balise specifique VLE
 
 

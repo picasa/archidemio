@@ -96,9 +96,9 @@ public:
 				r = mBuffer.insert(std::make_pair < std::string, double >(name, value));
 				if(r.second == true) {
 					mWaiting --;
-					TraceModel("mBuffer add");
+					//TraceModel("mBuffer add");
 				} else {
-					TraceModel("mBuffer not add");
+					//TraceModel("mBuffer not add");
 				}
 				assert(mWaiting >= 0);
 			}
@@ -110,11 +110,11 @@ public:
 				mAddModel = true;
                 P_UnitTTExp = (*it)->getDoubleAttributeValue("P_UnitTTExp");
                 P_UnitTTSen = (*it)->getDoubleAttributeValue("P_UnitTTSen");
-				TraceModel("mAddModel: add");
+				//TraceModel("mAddModel: add");
             }
         }
         
-        TraceModel(mWaiting);
+        //TraceModel(mWaiting);
         
 		if (mAddModel == true and mWaiting == 0) {
 			mPhase = ADDED;
@@ -156,11 +156,11 @@ public:
 		addConnection("CropPhenology", "ThermalTime", current, "ThermalTime");
         
 		// Creation des connexions avec Buffer -> modèles EXE | EXE -> Buffer
-        addConnection("Buffer", "ThermalTime", current, "ThermalTime");
-        addConnection("Buffer", "ActionTemp", current, "ActionTemp");
-        addConnection("Buffer", "TempEff", current, "TempEff");
-        addConnection("Buffer", "OutDeposition", current, "InDeposition");
-        addConnection(current, "OutDeposition", "Buffer", "InDeposition");
+		addConnection("Buffer", "ThermalTime", current, "ThermalTime");
+		addConnection("Buffer", "ActionTemp", current, "ActionTemp");
+		addConnection("Buffer", "TempEff", current, "TempEff");
+		addConnection("Buffer", "out", current, "in");
+		addConnection(current, "out", "Buffer", "in");
         		
 		// Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
 		addInputPort("CropScaling", (vle::fmt("%1%_AreaActive") % current).str());            
@@ -170,16 +170,16 @@ public:
 		
 		// Suppression des connexions entre modèles EXE n-1 et Buffer
 		if (mNumModel == 1) {
-			removeConnection("Unit_0", "update", "Buffer", "InDeposition");
+			removeConnection("Unit_0", "update", "Buffer", "in");
 		} else {
-			removeConnection(previous, "OutDeposition", "Buffer", "InDeposition");
+			removeConnection(previous, "out", "Buffer", "in");
 		}
 			
 		// Creation des connexions entre modèles EXE
 		if (mNumModel != 1) {
-			addConnection(previous, "OutDeposition", current, "InDeposition");
+			addConnection(previous, "out", current, "in");
 		} else {
-			addConnection("Unit_0", "update", current, "InDeposition");
+			addConnection("Unit_0", "update", current, "in");
 		}
 		
 		mNumModel++;
@@ -192,7 +192,7 @@ public:
 		removeConnection("Buffer", "ThermalTime", previous, "ThermalTime");
 		removeConnection("Buffer", "ActionTemp", previous, "ActionTemp");
 		removeConnection("Buffer", "TempEff", previous, "TempEff");
-		removeConnection("Buffer", "OutDeposition", previous, "InDeposition");
+		removeConnection("Buffer", "out", previous, "in");
 		
 	}
 
@@ -302,27 +302,27 @@ public:
         typedef vle::devs::ExternalEventList::const_iterator const_iterator;
         typedef std::map < std::string, double >::iterator iterator;
         
-		// Nettoyage Buffer
-		updateTime(time);
+	// Nettoyage Buffer
+	updateTime(time);
 
-		// Construction du Buffer si les evts contiennent des valeurs
+	// Construction du Buffer si les evts contiennent des valeurs
         for (const_iterator it = event.begin(); it != event.end(); ++it) {
-			if ((*it)->existAttributeValue("value")) {
-				std::string name = (*it)->getStringAttributeValue("name");
-				double value = (*it)->getDoubleAttributeValue("value");
-				
-				std::pair < iterator, bool > r;
-		   
-				r = mBuffer.insert(std::make_pair < std::string, double >(name, value));
-				if(r.second == true) {
-					mWaiting --;
-					TraceModel("mBuffer add");
-				} else {
-					TraceModel("mBuffer not add");
-				}
-				assert(mWaiting >= 0);
-			}
+	    if ((*it)->existAttributeValue("value")) {
+		std::string name = (*it)->getStringAttributeValue("name");
+		double value = (*it)->getDoubleAttributeValue("value");
+		
+		std::pair < iterator, bool > r;
+   
+		r = mBuffer.insert(std::make_pair < std::string, double >(name, value));
+		if(r.second == true) {
+		    mWaiting --;
+		    //TraceModel("mBuffer add");
+		} else {
+		    //TraceModel("mBuffer not add");
 		}
+		assert(mWaiting >= 0);
+	    }
+	}
 	
 		// Separer le remplissage du buffer du fait de recevoir un evenement "add"
         for (const_iterator it = event.begin(); it != event.end(); ++it) {
@@ -362,9 +362,7 @@ public:
 		mNumber = mParameter->getInt("number");
 		mPrefix = mParameter->getString("prefix");
 		
-        // Initiation sur certains noeuds
-        //addConnection("Initiation", "AreaLatent", (vle::fmt("%1%-%2%") % mPrefix % 0).str(), "perturb");
-        
+        // Initiation sur certains noeuds selon condition E_InitSpace (tuple)       
         std::vector < unsigned int >::const_iterator it;
 		for (it = E_InitSpace.begin(); it != E_InitSpace.end(); ++it) {
 			addConnection("Initiation", "AreaLatent", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
@@ -390,8 +388,6 @@ public:
 			addConnection(current, "AreaActive", "CropScaling", (vle::fmt("%1%_AreaActive") % current).str());
 		}		
 
-		std::ofstream file("output-etape1.vpz");
-        dump(file);		
  	}
 
 	void etape3() {
@@ -403,7 +399,7 @@ public:
 			removeConnection("Buffer", "TempEff", current, "TempEff");
 		}
 				
-		std::ofstream file("output-etape3.vpz");
+		std::ofstream file("output.vpz");
         dump(file);		
 
 		// TODO delModel("Buffer");		

@@ -14,7 +14,7 @@ source("fonctions.R")
 ### puis calculer des indices depuis les sorties.
 
 ## 1. Plan d'expérience géré par VLE
-f <- rvle.open("archidemio_0.5.vpz", "archidemio")
+f <- rvle.open("archidemio_0.5a.vpz", "archidemio")
 # Pour chaque paramètre, on fixe son intervalle d'incertitude, 
 # efface la valeur nominale et assigne la gamme au vpz.
 # rvle.listConditionPorts(f,"condParametres")
@@ -35,38 +35,14 @@ bounds <- factors.bounds[1:4,]
 
 # Construire le plan
 # f.plan <- expand.grid(va, vb)
-
-f.plan <- NULL
-for (p in factors.name) {
-	p.levels <- with(bounds, seq(bounds[name==p,"min"], bounds[name==p,"max"], length.out=10))
-	f.plan <- data.frame(f.plan, p.levels)
-}
-
-
-getPlanMorris <- function(factors,  binf=bounds$min, bsup=bounds$max, S=10, K=6, delta=K/(2*(K-1))) {
-	# S : pas suffisamment grand pour être sensible aux effets des facteurs
-	# K : nombre de niveau de la grille
-		
-	m <- morris(model=NULL, factors=factors, r = S, scale=F,
-				design = list(type="oat", levels=K, grid.jump=delta*(K-1)),
-				binf = binf,
-				bsup = bsup
-	)
-	return(m)
-}
-
-f.as <- getPlanMorris(factors,S=80, K=14)
+f.as <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=80, K=14)
 f.plan <- f.as$X
 
 # Mise en place dans VLE
-for (p in factors) {
-	rvle.clearConditionPort(self, condition, p)
-	lapply(f.plan[,p], function(value) {rvle.addRealCondition(self, condition, p, value)})
-}
+rvle.addPlanCondition(f, "condParametres", factors=factors)
 #rvle.setTotalCombination(f,1,1) 	# Complet
 #regular.fraction() 				# Fractionné
 rvle.setLinearCombination(f,1,1) 	# Linéaire
-
 # On vérifie le plan dans le vpz.
 rvle.getAllConditionPortValues(f, "condParametres")
 
@@ -104,13 +80,12 @@ plot(f.as)
 
 
 ### Bazar
+for (p in factors.name) {
+	p.levels <- with(bounds, seq(bounds[name==p,"min"], bounds[name==p,"max"], length.out=10))
+	f.plan <- data.frame(f.plan, p.levels)
+}
 
-f.fast99 <- fast99(
-	model=rvle.sim,
-    factors=f.factors.name,
-	n=100, q=rep("qunif",2), q.arg=f.bounds,
-	nExec=24, nVarNormal=0, nVarExec=1, resume=T
-)
+
 	
 
 

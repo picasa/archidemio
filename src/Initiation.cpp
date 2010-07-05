@@ -25,7 +25,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+#include <vle/devs/DynamicsDbg.hpp>
 #include <vle/extension/DifferenceEquation.hpp>
 //#include <vle/extension/difference-equation/Base.hpp>
 #include <vle/extension/fsa/Statechart.hpp>
@@ -47,7 +47,7 @@ public:
 	const vd::InitEventList& events) 
 	: vf::Statechart(init, events)
 	{
-	    E_Init = vv::toDouble(events.get("E_Init"));
+	    E_Init = std::floor(vv::toDouble(events.get("E_InitTime")));
 	    
 	    states(this) << Healthy << Infected;
 	    
@@ -75,5 +75,5 @@ private:
 
 } 
 
-DECLARE_NAMED_DYNAMICS(Initiation, Crop::Initiation)
+DECLARE_NAMED_DYNAMICS_DBG(Initiation, Crop::Initiation)
 

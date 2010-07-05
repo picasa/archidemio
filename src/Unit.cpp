@@ -22,6 +22,7 @@
 
 #include <vle/extension/DifferenceEquation.hpp>
 #include <vle/extension/DifferenceEquationDbg.hpp>
+#include <vle/devs/DynamicsDbg.hpp>
 
 namespace vd = vle::devs;
 namespace ve = vle::extension;
@@ -52,7 +53,7 @@ public:
 		TempEff = createSync("TempEff"); 
 		ThermalTime = createSync("ThermalTime"); 
         ActionTemp = createSync("ActionTemp");
-        //InDeposition = createSync("in");
+        InDeposition = createNosync("in");
         
         // Variables d'état
         RateAreaExpansion = createVar("RateAreaExpansion");
@@ -66,7 +67,7 @@ public:
         AreaSenescence = createVar("AreaSenescence");
         AreaDeseased = createVar("AreaDeseased");
         RateDeseaseTransmission = createVar("RateDeseaseTransmission");
-        //OutDeposition = createVar("in");
+        OutDeposition = createVar("out");
     }
 
     virtual ~Unit()
@@ -92,7 +93,7 @@ virtual void compute(const vd::Time& /*time*/)
     AreaExpansion = AreaExpansion(-1) + RateAreaExpansion();
     
     // Surface senescente : intégration de RateAreaSenescence
-    AreaSenescence = AreaSenescence(-1) + RateAreaSenescence();
+    AreaSenescence = fmin(AreaSenescence(-1) + RateAreaSenescence(),P_AreaMax);
     
     // Vitesse d'infection au sein de l'unité
     RateDeseaseTransmission = E_RateDeseaseTransmission;
@@ -101,18 +102,17 @@ virtual void compute(const vd::Time& /*time*/)
     AreaHealthy = fmax(
         AreaHealthy(-1) 
         +RateAreaExpansion() 
-        -(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) 
+        -(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1))
+        -(InDeposition(-1)* AreaHealthy(-1)/AreaExpansion(-1))
         -(RateAreaSenescence() * AreaHealthy(-1)/AreaActive(-1)),0);
-        //-(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1))
         
     // Surface latente, création par l'infection, destruction par la propagation du pathogene et la senescence
     AreaLatent = fmax(
         AreaLatent(-1) 
         +(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1))
+        +(InDeposition(-1)* AreaHealthy(-1)/AreaExpansion(-1))
         -(1/E_LatentPeriod * AreaLatent(-1)) 
         -(RateAreaSenescence() * AreaLatent(-1)/AreaActive(-1)),0);
-        //+(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1))
-
         
     // Surface infectieuse, creation par la propagation du pathogene, destruction par le pathogene
     AreaInfectious = fmax(
@@ -138,7 +138,8 @@ virtual void compute(const vd::Time& /*time*/)
     AreaDeseased = AreaLatent() + AreaInfectious() +(AreaRemoved() - AreaSenescence());
     
     // Emission de spores
-    // OutDeposition = E_RateAlloDeposition * AreaInfectious();
+    OutDeposition = E_RateAlloDeposition * AreaInfectious();
+    // OutDeposition = 0;
     
 }
 //@@end:compute@@
@@ -157,7 +158,7 @@ virtual void initValue(const vd::Time& /*time*/)
     AreaSenescence = 0.0;
     AreaDeseased = 0.0;
     RateDeseaseTransmission = E_RateDeseaseTransmission;    
-    // OutDeposition = 0;
+    OutDeposition = 0;
     
 }
 //@@end:initValue@@
@@ -180,7 +181,7 @@ private:
     Sync ActionTemp;
     Sync TempEff;
     Sync ThermalTime;
-    //Sync InDeposition;
+    Nosync InDeposition;
     
     Var RateAreaExpansion;
     Var RateAreaSenescence;
@@ -193,11 +194,11 @@ private:
     Var AreaSenescence;
     Var AreaDeseased;
     Var RateDeseaseTransmission;
-    //Var OutDeposition;
+    Var OutDeposition;
     
 };
 
 } // namespace Unit
 
-DECLARE_DIFFERENCE_EQUATION_MULTIPLE_DBG(Crop::Unit)
-
+//DECLARE_DIFFERENCE_EQUATION_MULTIPLE_DBG(Crop::Unit)
+DECLARE_DYNAMICS_DBG(Crop::Unit)

@@ -25,31 +25,47 @@
 #include <vle/extension/fsa/Statechart.hpp>
 #include <vle/extension/DifferenceEquation.hpp>
 #include <vle/devs/DynamicsDbg.hpp>
+#include <vle/utils.hpp>
+#include <vle/devs.hpp>
 
 namespace vd = vle::devs;
 namespace ve = vle::extension;
 namespace vv = vle::value;
 
-class Pilote : public ve::fsa::Statechart
+class PiloteFSA : public ve::fsa::Statechart
 {
 
 public:
-    Pilote(const vd::DynamicsInit& init,
+    PiloteFSA(const vd::DynamicsInit& init,
            const vd::InitEventList& events) :
             ve::fsa::Statechart(init, events)
     {
+	mIndex = 0;
+	ThermalTime0 = 0;
+	ThermalTime = 0;
+	P_UnitTTExp = 0;
+	P_UnitTTSen = 0;
+	P_TTFlo = 0;
         
         P_UnitTTExp = vv::toDouble(events.get("P_UnitTTExp"));
 		P_UnitTTSen = vv::toDouble(events.get("P_UnitTTSen"));
 		P_TTFlo = vv::toDouble(events.get("P_TTFlo"));
         
 
-        // Définition de la liste des conditions gérant l'initiation des unités (GVLE, condition type "Set")
+        /* Définition de la liste des conditions gérant l'initiation des unités (GVLE, condition type "Set")
         const vv::Set& p = toSetValue(events.get("P_UnitTTInit"));
 
         for (unsigned int index = 0; index < p.size(); ++index) {
             P_UnitTTInit.push_back(vv::toDouble(p.get(index)));
-        }
+        }*/
+        
+        // Tuple pour une liste de dates d'initiation (P_UnitTTInit)
+		const vle::value::TupleValue& p = (vle::value::toTuple(events.get("P_UnitTTInit")));
+		vle::value::TupleValue::const_iterator it;
+		
+		for (it = p.begin(); it != p.end(); ++it) {
+			P_UnitTTInit.push_back(*it);
+		}
         
         // Construction dynamique du graphe des unités : autant d'états que la longueur du paramétrage. 
         for (unsigned int index = 0; index < P_UnitTTInit.size(); ++index) {
@@ -61,28 +77,28 @@ public:
         
         // Transition et actions entre états (unités) 
         for (unsigned int index = 0; index < P_UnitTTInit.size()-1; ++index) {
-            transition(this, index, index+1) << guard(&Pilote::development) 
-                                             << send(&Pilote::add);
+            transition(this, index, index+1) << guard(&PiloteFSA::development) 
+                                             << send(&PiloteFSA::add);
         }
         
         // Transition at action pour l'état final (.size commence à 0, on parle bien du dernier état)
-        transition(this, P_UnitTTInit.size()-1, P_UnitTTInit.size()-1) << guard(&Pilote::vegetative)
-                                                                       << send(&Pilote::add);
+        transition(this, P_UnitTTInit.size()-1, P_UnitTTInit.size()-1) << guard(&PiloteFSA::vegetative)
+                                                                       << send(&PiloteFSA::add);
                                                                
         // Transition pour l'arret du développement
-        transition(this, P_UnitTTInit.size()-1, P_UnitTTInit.size()) << guard(&Pilote::reproductive);
+        transition(this, P_UnitTTInit.size()-1, P_UnitTTInit.size()) << guard(&PiloteFSA::reproductive);
                                                                
         // Actions quand on rentre dans les états
         for (unsigned int index = 0; index < p.size(); ++index) {
-            inAction(this, &Pilote::a) >> index;
-            eventInState(this, "ThermalTime", &Pilote::in) >> index;
+            inAction(this, &PiloteFSA::a) >> index;
+            eventInState(this, "ThermalTime", &PiloteFSA::in) >> index;
         }
         
         initialState(0);
         mIndex=0;
     }
 
-    virtual ~Pilote()
+    virtual ~PiloteFSA()
     { }
 
     // Stocke le temps thermique lors de l'entrée dans un état, incrémente le compteur de modèle 
@@ -154,4 +170,67 @@ private:
     double P_TTFlo;
 };
 
-DECLARE_NAMED_DYNAMICS_DBG(Pilote, Pilote)
+
+
+
+
+
+class PiloteGraph : public vle::devs::Dynamics
+{
+public:
+    PiloteGraph(const vle::devs::DynamicsInit& init,
+              const vle::devs::InitEventList& events) :
+	vle::devs::Dynamics(init, events)
+    {
+        prefix = vv::toString(events.get("prefix"));
+        port = vv::toString(events.get("port"));
+        classes = vv::toString(events.get("E_GridClasses"));
+        matrix = vv::toString(events.get("E_GridMatrix"));
+        number = vv::toInteger(events.get("E_GridNumber"));
+    }
+    
+    virtual ~PiloteGraph() { }
+    
+    vle::devs::Time init(const vle::devs::Time& /* time */)
+    {
+        return 0;
+    }
+    
+    void output(const vle::devs::Time& /* time */,
+                vle::devs::ExternalEventList& output) const
+	{	
+        
+        
+        vd::ExternalEvent* ee=new vd::ExternalEvent("add");
+
+		vle::value::Map* mp = new vle::value::Map ();
+        
+        mp->addString("prefix", prefix);
+        mp->addInt("number", number);
+        mp->addString("port", "out");
+        mp->addString("adjacency matrix", matrix);
+        mp->addString("classes", classes);
+        		
+        		
+        ee << vd::attribute("parameter", mp);
+   		output.addEvent(ee);
+	}
+		
+	    vle::devs::Time timeAdvance() const
+    {
+		return vle::devs::Time::infinity;
+    }
+	
+    
+private:
+
+std::string prefix;
+std::string classes;
+std::string port;
+std::string matrix;
+int number;
+};
+
+DECLARE_NAMED_DYNAMICS_DBG(PiloteFSA, PiloteFSA)
+DECLARE_NAMED_DYNAMICS_DBG(PiloteGraph, PiloteGraph)
+

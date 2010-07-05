@@ -1,11 +1,5 @@
-/**
-  * @file CropLeafArea.cpp
-  * @author ...
-  * ...
-  * @@tag DifferenceEquationMultiple@@namespace:Crop;class:CropLeafArea;par:C_Density,*|P_AreaMax,*|;sync:AreaActive|AreaDeseased|;nosync:@@end tag@@
-  */
 
-#include <vle/extension/DifferenceEquation.hpp>
+#include <vle/extension/DifferenceEquationDbg.hpp>
 
 namespace vd = vle::devs;
 namespace ve = vle::extension;
@@ -29,7 +23,6 @@ public:
     virtual ~CropLeafArea()
     {}
 
-//@@begin:compute@@
 virtual void compute(const vd::Time& /*time*/)
 {
     // On utilise directement la surface d'une strate à ce stade, 
@@ -47,16 +40,12 @@ virtual void compute(const vd::Time& /*time*/)
      
 
 }
-//@@end:compute@@
-
-//@@begin:initValue@@
 virtual void initValue(const vd::Time& /*time*/)
-{ }
-//@@end:initValue@@
+{
+	LAI = 0.0;
+}
 
 private:
-//@@begin:user@@
-//@@end:user@@
 
     double C_Density;
     Var LAI;
@@ -64,6 +53,5 @@ private:
 };
 
 } // namespace Crop
-
-DECLARE_DYNAMICS(Crop::CropLeafArea)
+DECLARE_DIFFERENCE_EQUATION_MULTIPLE_DBG(Crop::CropLeafArea)
 

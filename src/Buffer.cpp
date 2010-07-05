@@ -120,15 +120,11 @@ public:
     virtual void externalTransition(const vle::devs::ExternalEventList& event,
                                     const vle::devs::Time& time)
     {
-        vle::devs::ExternalEventList::const_iterator it = event.begin();
+        typedef vle::devs::ExternalEventList::const_iterator const_iterator;
+        typedef std::map < std::string, double >::iterator iterator;
 
-        while (it != event.end()) {
-            if ((*it)->onPort("send")) {
-                if (mWaiting == 0) {
-                    mPhase = SEND;
-                }
-            } else {
-                if ((*it)->existAttributeValue("value")) {
+        for (const_iterator it = event.begin(); it != event.end(); ++it) {
+                            if ((*it)->existAttributeValue("value")) {
                     std::string name = (*it)->getStringAttributeValue("name");
                     double value = (*it)->getDoubleAttributeValue("value");
 
@@ -138,6 +134,25 @@ public:
                         mWaiting = mVariableNumber;
                         mPhase = SEND_CANCEL;
                     }
+
+                    std::pair < iterator, bool > r = mValues.insert(
+                        std::make_pair < std::string, double >(name, value));
+                        
+                    TraceModel(name);
+                    TraceModel(mWaiting);
+/*
+//                    if (r.second) {
+                        TraceModel("--mWaiting");
+                        --mWaiting;
+//                    }
+  
+                    assert(mWaiting >= 0);
+                    
+                    if (mWaiting == 0) {
+                        TraceModel("mPhase = FULL");
+                        mPhase = FULL;
+                    }
+*/
                     mValues[name] = value;
                     --mWaiting;
                     if (mWaiting == 0) {
@@ -145,7 +160,13 @@ public:
                     }
                 }
             }
-            ++it;
+
+        for (const_iterator it = event.begin(); it != event.end(); ++it) {
+            if ((*it)->onPort("send")) {
+                if (mWaiting == 0) {
+                    mPhase = SEND;
+                }
+            }
         }
     }
 
