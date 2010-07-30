@@ -53,7 +53,7 @@ public:
 		TempEff = createSync("TempEff"); 
 		ThermalTime = createSync("ThermalTime"); 
         ActionTemp = createSync("ActionTemp");
-        InDeposition = createNosync("in");
+        In = createNosync("in");
         
         // Variables d'état
         RateAreaExpansion = createVar("RateAreaExpansion");
@@ -64,10 +64,21 @@ public:
         AreaLatent = createVar("AreaLatent");
         AreaInfectious = createVar("AreaInfectious");        
         AreaRemoved = createVar("AreaRemoved");
+        AreaRemovedByDesease = createVar("AreaRemovedByDesease");
+        ScoreArea = createVar("ScoreArea");
         AreaSenescence = createVar("AreaSenescence");
         AreaDeseased = createVar("AreaDeseased");
         RateDeseaseTransmission = createVar("RateDeseaseTransmission");
-        OutDeposition = createVar("out");
+        RateAlloDeposition = createVar("RateAlloDeposition");
+        LatentPeriod = createVar("LatentPeriod");
+        InfectiousPeriod = createVar("InfectiousPeriod");
+        Out = createVar("out");
+        OutDeposition = createVar("OutDeposition");
+        InDeposition = createVar("InDeposition");
+        Receptivity = createVar("Receptivity");
+        ThermalAge = createVar("ThermalAge");
+        InitQuantity = createVar("InitQuantity");
+        CropState = createVar("CropState");
     }
 
     virtual ~Unit()
@@ -76,6 +87,42 @@ public:
 //@@begin:compute@@
 virtual void compute(const vd::Time& /*time*/)
 {
+    // Quantité d'inoculum primaire (perturbé par modèle Initation)
+    InitQuantity = 0;
+    
+    /* Réception de spores : /!\ dépendante de la veille (t-1) 
+     * Géré par 4 variables (pour permettre les perturbations) :
+     * In/Out : assurent la connexion entre unités, mappés vers les ports in/out
+     * InDeposition/OutDeposition : variables "biologiques", decrit le fonctionnement
+     */
+    
+    double InDeposition_tmp = In(-1);
+    if (TempEff() > 20) {
+        InDeposition_tmp = 0;
+    }
+    InDeposition = InDeposition_tmp;  
+
+    // Age thermique de l'unité
+    ThermalAge = TempEff() + ThermalAge(-1);
+    
+    /* Receptivité de tissus : Réponse identique pour toute les unités
+     * Linéaire decroissant : Receptivity = fmax(- 1/1000 * ThermalAge() +1, 0);
+     * Linéaire croissant : Receptivity = fmin(1/1000 * ThermalAge() + 0.2, 1.2);
+     * Sigmoide : Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2;
+     * (paramètres : pente, asymptotes (haut et bas), abscisse pt d'inflexion)
+     */ 
+    Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2;
+    
+    /* Periode de latence : durée en j.
+     * Pour les parasites biotrophes, cette variable pèse bcp dans le dev de l'épidémie (Rapilly1990, Zadoks1971)
+     * Cible de contraintes env & resistance plante. 
+     */
+    LatentPeriod = E_LatentPeriod; 
+     
+    /* Periode infectieuse
+     */
+    InfectiousPeriod = E_InfectiousPeriod;
+    
     // Vitesse de croissance
     RateAreaExpansion = TempEff() * (P_AreaMax * P_SlopeExpansion) * exp(-P_SlopeExpansion * (ThermalTime() - P_UnitTTExp)) / pow((1 + exp(-P_SlopeExpansion * (ThermalTime() - P_UnitTTExp))),2);
     
@@ -95,51 +142,70 @@ virtual void compute(const vd::Time& /*time*/)
     // Surface senescente : intégration de RateAreaSenescence
     AreaSenescence = fmin(AreaSenescence(-1) + RateAreaSenescence(),P_AreaMax);
     
-    // Vitesse d'infection au sein de l'unité
+    // Vitesse d'infection au sein de l'unité (autodeposition)
     RateDeseaseTransmission = E_RateDeseaseTransmission;
+    
+    // Vitesse d'infection entre unités (allodeposition)
+    RateAlloDeposition = E_RateAlloDeposition;
         
     // Surface saine, création par la croissance, destruction par l'infection (intra / extra) et la senescence naturelle
     AreaHealthy = fmax(
-        AreaHealthy(-1) 
+        AreaHealthy(-1)
+        -InitQuantity() 
         +RateAreaExpansion() 
-        -(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1))
-        -(InDeposition(-1)* AreaHealthy(-1)/AreaExpansion(-1))
+        -(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
+        -(InDeposition() * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         -(RateAreaSenescence() * AreaHealthy(-1)/AreaActive(-1)),0);
         
     // Surface latente, création par l'infection, destruction par la propagation du pathogene et la senescence
     AreaLatent = fmax(
-        AreaLatent(-1) 
-        +(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1))
-        +(InDeposition(-1)* AreaHealthy(-1)/AreaExpansion(-1))
-        -(1/E_LatentPeriod * AreaLatent(-1)) 
+        AreaLatent(-1)
+        +InitQuantity() 
+        +(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
+        +(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
+        -(1/LatentPeriod() * AreaLatent(-1)) 
         -(RateAreaSenescence() * AreaLatent(-1)/AreaActive(-1)),0);
         
     // Surface infectieuse, creation par la propagation du pathogene, destruction par le pathogene
     AreaInfectious = fmax(
         AreaInfectious(-1) 
-        +(1/E_LatentPeriod * AreaLatent(-1)) 
-        -(1/E_InfectiousPeriod * AreaInfectious(-1)) 
+        +(1/LatentPeriod() * AreaLatent(-1)) 
+        -(1/InfectiousPeriod() * AreaInfectious(-1)) 
         -(RateAreaSenescence() * AreaInfectious(-1)/AreaActive(-1)),0);
     
     // Surface détruite par le pathogène et la senescence naturelle
     AreaRemoved = fmin( 
         AreaRemoved(-1) 
-        +(1/E_InfectiousPeriod * AreaInfectious(-1)) 
+        +(1/InfectiousPeriod() * AreaInfectious(-1)) 
         +RateAreaSenescence(),P_AreaMax);  
         
     // Surface détruite par la maladie
-    // (AreaRemoved() - AreaSenescence())
+    AreaRemovedByDesease = 
+        AreaRemovedByDesease(-1) 
+        +(1/InfectiousPeriod() * AreaInfectious(-1));
+        
+    // % de Surface détruite par la maladie = note de surface
+    ScoreArea = 
+        AreaRemovedByDesease() / AreaExpansion();
     
     // Surface active : différence totale - senescence
     AreaActive = fmax(AreaExpansion() - AreaRemoved(),0);
     
-    
     // Surface malade = total des surfaces infectée (L + I + R causé par maladie)
-    AreaDeseased = AreaLatent() + AreaInfectious() +(AreaRemoved() - AreaSenescence());
+    AreaDeseased =
+        + AreaLatent() 
+        + AreaInfectious() 
+        + (1/InfectiousPeriod() * AreaInfectious(-1));
+        
+    /* Emission de spores
+     * 1. proportion de la surface infectieuse de l'unité
+     * 2. réduite par la porosité de l'unité / couvert
+     */
+    OutDeposition = RateAlloDeposition() * AreaInfectious();
     
-    // Emission de spores
-    OutDeposition = E_RateAlloDeposition * AreaInfectious();
-    // OutDeposition = 0;
+    // Emission, pour être coherent avec la nomenclature In/Out
+    Out = OutDeposition();
+    
     
 }
 //@@end:compute@@
@@ -155,10 +221,21 @@ virtual void initValue(const vd::Time& /*time*/)
     AreaLatent = 0.0;
     AreaInfectious = 0.0;
     AreaRemoved = 0.0;
+    AreaRemovedByDesease = 0.0;
+    ScoreArea = 0;
     AreaSenescence = 0.0;
     AreaDeseased = 0.0;
     RateDeseaseTransmission = E_RateDeseaseTransmission;    
+    RateAlloDeposition = E_RateAlloDeposition;    
+    LatentPeriod = E_LatentPeriod;
+    InfectiousPeriod = E_InfectiousPeriod;
     OutDeposition = 0;
+    InDeposition = 0;
+    Out = 0;
+    Receptivity = 0.2;
+    ThermalAge = 0;
+    InitQuantity = 0;
+    CropState = 0;
     
 }
 //@@end:initValue@@
@@ -167,6 +244,7 @@ private:
 //@@begin:user@@
 //@@end:user@@
 
+    // Parametres
     double P_AreaMax; /**< Paramètre : surface potentielle d'une unité, Unité : m^2 */
     double P_UnitTTExp; /**< Paramètre : date de demi-expansion de la surface d'une unité */
     double P_UnitTTSen; /**< Paramètre : date de demi-senescence de la surface d'une unité */
@@ -177,12 +255,13 @@ private:
     double E_InfectiousPeriod; /**< Paramètre : durée de la période infectieuse */
     double E_LatentPeriod; /**< Paramètre : durée de la période de latence */
     
-    
+    // Entrées
     Sync ActionTemp;
     Sync TempEff;
     Sync ThermalTime;
-    Nosync InDeposition;
+    Nosync In;
     
+    // Variables d'état
     Var RateAreaExpansion;
     Var RateAreaSenescence;
     Var AreaExpansion;
@@ -191,10 +270,21 @@ private:
     Var AreaLatent;
     Var AreaInfectious;
     Var AreaRemoved;
+    Var AreaRemovedByDesease;
+    Var ScoreArea;
     Var AreaSenescence;
     Var AreaDeseased;
     Var RateDeseaseTransmission;
+    Var RateAlloDeposition;
+    Var LatentPeriod;
+    Var InfectiousPeriod;
     Var OutDeposition;
+    Var InDeposition;
+    Var Out;
+    Var Receptivity;
+    Var ThermalAge;
+    Var InitQuantity;
+    Var CropState;
     
 };
 

@@ -150,7 +150,7 @@ public:
 		createModelFromClass("Unit", current); 
 		
 		// Creation des connections modèles DE -> modèles EXE 
-		addConnection("Initiation", "AreaLatent", current, "perturb");
+		addConnection("Initiation", "InitQuantity", current, "perturb");
 		addConnection("CropClimate", "ActionTemp", current, "ActionTemp");
 		addConnection("CropPhenology", "TempEff", current, "TempEff");
 		addConnection("CropPhenology", "ThermalTime", current, "ThermalTime");
@@ -365,7 +365,7 @@ public:
         // Initiation sur certains noeuds selon condition E_InitSpace (tuple)       
         std::vector < unsigned int >::const_iterator it;
 		for (it = E_InitSpace.begin(); it != E_InitSpace.end(); ++it) {
-			addConnection("Initiation", "AreaLatent", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
+			addConnection("Initiation", "InitQuantity", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
 		}
 		
         // Ajout des connexions modèles DE -> EXE

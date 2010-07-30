@@ -37,45 +37,59 @@ namespace vf = vle::extension::fsa;
 namespace vd = vle::devs;
 namespace vv = vle::value;
 
-enum State { Healthy, Infected };
+enum State { BareSoil, Sowing, Emergence, Closure, Reproductive, Maturity };
 
-class Initiation : public vf::Statechart
+class CropState : public vf::Statechart
 {
 public:
-    Initiation(
+    CropState(
 	const vd::DynamicsInit& init,
 	const vd::InitEventList& events) 
-	: vf::Statechart(init, events)
+	: vf::Statechart(init, events)	
 	{
-	    E_InitTime = std::floor(vv::toDouble(events.get("E_InitTime")));
-	    E_InitQuantity = vv::toDouble(events.get("E_InitQuantity"));
+		// Variables d'�tat
+	    eventInState(this, "ThermalTime", &CropState::in)
+		>> BareSoil >> Sowing >> Emergence >> Closure
+			>> Reproductive >> Maturity;
 	    
-	    states(this) << Healthy << Infected;
+	    states(this) << BareSoil << Sowing << Emergence << Closure
+			<< Reproductive << Maturity;
 	    
-	    // passage de l'état Sain à Infecté, après un temps déterminé (E_Init)
-	    // action : infection des unités existantes au moment de la transition
-	    transition(this, Healthy, Infected) << after(E_InitTime)
-				   << send(&Initiation::infection);
+	    transition(this, BareSoil, Sowing) << after(10.0);
+				   
+	    transition(this, Sowing, Emergence) << after(10.0);
+				   
+	    transition(this, Emergence, Closure) << after(10.0);
+				   
+	    transition(this, Closure, Reproductive) << after(10.0)
+				   << send(&CropState::reproductive);
+				   
+	    transition(this, Reproductive, Maturity) << after(10.0);
 
-	    initialState(Healthy);
+	    initialState(BareSoil);
 	}
 
-    virtual ~Initiation() { }
+    virtual ~CropState() { }
 
-    void infection (const vd::Time& /* time */, vd::ExternalEventList& output) const
+    void reproductive (const vd::Time& /* time */, vd::ExternalEventList& output) const
 	{
-	    // Remplace la valeur d'une variable d'état dans un modèle "Unit"
-	    output << (ve::DifferenceEquation::Var("InitQuantity") = E_InitQuantity);
+	    // Remplace la valeur d'une variable d'�tat dans un mod�le "Unit"
+	    output << (ve::DifferenceEquation::Var("CropState") = 4.0);
 	}
 	
-	
+    
 private:
-    double E_InitTime; /**< Paramètre : date d'arrivé de la maladie dans le système */
-    double E_InitQuantity; 
+
+    // Acc�s variables Diff Equation
+     void in(const vd::Time& /* time */, const vd::ExternalEvent* event )
+    { ThermalTime << ve::DifferenceEquation::Var("ThermalTime", event); }
+
+	// Varibles d'�tat
+    double ThermalTime;
 
 }; // namespace Crop
 
 } 
 
-DECLARE_NAMED_DYNAMICS_DBG(Initiation, Crop::Initiation)
+DECLARE_NAMED_DYNAMICS_DBG(CropState, Crop::CropState)
 

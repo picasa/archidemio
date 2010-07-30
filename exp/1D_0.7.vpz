@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1006" height="502"  >
+<model name="Top model" type="coupled" x="0" y="0" width="1294" height="580"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="275" y="40" width="1006" height="502"  >
+<model name="Crop" type="coupled" x="273" y="38" width="1006" height="502"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -24,21 +24,23 @@
  <port name="TempMin" />
 </in>
 <submodels>
-<model name="Buffer" type="atomic" conditions="condParametres" dynamics="dynUnitConstruction" x="596" y="274" width="100" height="90" >
+<model name="Buffer" type="atomic" dynamics="dynUnitConstructionGen" x="624" y="302" width="100" height="105" >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />
  <port name="ThermalTime" />
  <port name="add" />
+ <port name="in" />
 </in>
 <out>
  <port name="ActionTemp" />
  <port name="TempEff" />
  <port name="ThermalTime" />
  <port name="addModelCropScaling" />
+ <port name="out" />
 </out>
 </model>
-<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynCropClimate" observables="obsCropClimate" x="210" y="55" width="100" height="60" >
+<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynCropClimate" observables="obsCropClimate" x="233" y="41" width="100" height="60" >
 <in>
  <port name="RH" />
  <port name="TempMean" />
@@ -48,7 +50,7 @@
  <port name="ActionTemp" />
 </out>
 </model>
-<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynPassive" observables="obsCropLeafArea" x="806" y="155" width="100" height="45" >
+<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynCropLeafArea" observables="obsCropLeafArea" x="797" y="240" width="100" height="45" >
 <in>
  <port name="CropAreaActive" />
 </in>
@@ -56,7 +58,7 @@
  <port name="LAI" />
 </out>
 </model>
-<model name="CropPhenology" type="atomic" conditions="condCropPhenology,condEqDiff,condParametres" dynamics="dynCropPhenology" observables="obsCropPhenology" x="78" y="273" width="100" height="75" >
+<model name="CropPhenology" type="atomic" conditions="condCropPhenology,condEqDiff,condParametres" dynamics="dynCropPhenology" observables="obsCropPhenology" x="95" y="192" width="100" height="75" >
 <in>
  <port name="TempMax" />
  <port name="TempMin" />
@@ -67,7 +69,7 @@
  <port name="ThermalTime" />
 </out>
 </model>
-<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynPassive" x="802" y="58" width="100" height="45" >
+<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynCropScaling" observables="obsCropScaling" x="795" y="147" width="100" height="45" >
 <in>
  <port name="add" />
 </in>
@@ -75,14 +77,24 @@
  <port name="update" />
 </out>
 </model>
-<model name="Initiation" type="atomic" conditions="condParametres" dynamics="dynInitiation" x="396" y="61" width="100" height="45" >
+<model name="CropState" type="atomic" dynamics="dynPassive" x="93" y="353" width="100" height="30" >
+</model>
+<model name="Initiation" type="atomic" conditions="condParametres" dynamics="dynInitiation" x="388" y="132" width="100" height="45" >
 <out>
- <port name="AreaLatent" />
+ <port name="InitQuantity" />
 </out>
 </model>
-<model name="UnitPilot" type="atomic" conditions="condParametres,condPilot" dynamics="dynPiloteGraph" x="400" y="135" width="100" height="45" >
+<model name="UnitPilot" type="atomic" conditions="condParametres" dynamics="dynUnitPilot" x="388" y="238" width="100" height="45" >
+<in>
+ <port name="ThermalTime" />
+</in>
 <out>
  <port name="add" />
+</out>
+</model>
+<model name="Unit_0" type="atomic" conditions="condEqDiff,condUnit_0" dynamics="dynUnit_0" observables="obsUnit_0" x="618" y="215" width="100" height="45" >
+<out>
+ <port name="update" />
 </out>
 </model>
 </submodels>
@@ -120,12 +132,20 @@
  <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
+</connection>
+<connection type="internal">
  <origin model="CropScaling" port="update" />
  <destination model="CropLeafArea" port="CropAreaActive" />
 </connection>
 <connection type="internal">
  <origin model="UnitPilot" port="add" />
  <destination model="Buffer" port="add" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_0" port="update" />
+ <destination model="Buffer" port="in" />
 </connection>
 </connections>
 </model>
@@ -147,7 +167,7 @@
 </model>
 </structures>
 <dynamics>
-<dynamic name="dynConnector" library="Connector" model="Connector" package="archidemio" type="local"  />
+<dynamic name="dynBuffer" library="Buffer" model="Buffer" package="archidemio" type="local"  />
 <dynamic name="dynCropClimate" library="CropClimate" model="CropClimate" package="archidemio" type="local"  />
 <dynamic name="dynCropLeafArea" library="CropLeafArea" model="" package="archidemio" type="local"  />
 <dynamic name="dynCropPhenology" library="CropPhenology" model="CropPhenology" package="archidemio" type="local"  />
@@ -155,39 +175,14 @@
 <dynamic name="dynInitiation" library="Initiation" model="Initiation" package="archidemio" type="local"  />
 <dynamic name="dynMeteo" library="meteo" model="GenericWithHeader" package="meteo" type="local"  />
 <dynamic name="dynPassive" library="emptylibrary" model="simple" package="archidemio" type="local"  />
-<dynamic name="dynPiloteGraph" library="Pilote" model="PiloteGraph" package="archidemio" type="local"  />
 <dynamic name="dynUnit" library="Unit" model="" package="archidemio" type="local"  />
-<dynamic name="dynUnitConstruction" library="UnitConstructionGen" model="ExecutiveGraph" package="archidemio" type="local"  />
-<dynamic name="dynUnit_0" library="glue" model="ConstantDynamicsDbg" package="glue" type="local"  />
+<dynamic name="dynUnitConstructionGen" library="UnitConstructionGen" model="ExecutiveFSA" package="archidemio" type="local"  />
+<dynamic name="dynUnitPilot" library="Pilote" model="PiloteFSA" package="archidemio" type="local"  />
+<dynamic name="dynUnit_0" library="glue" model="ConstantDbg" package="glue" type="local"  />
 </dynamics>
 <classes>
 <class name="Unit" >
-<model name="Unit" type="coupled" width="1006" height="502"  >
-<in>
- <port name="ActionTemp" />
- <port name="TempEff" />
- <port name="ThermalTime" />
- <port name="perturb" />
-</in>
-<out>
- <port name="AreaActive" />
- <port name="out" />
-</out>
-<submodels>
-<model name="Connector" type="atomic" dynamics="dynConnector" x="128" y="55" width="100" height="45" >
-<out>
- <port name="add" />
-</out>
-</model>
-<model name="Deposition" type="atomic" conditions="condDeposition,condEqDiff" dynamics="dynCropScaling" x="291" y="59" width="100" height="45" >
-<in>
- <port name="add" />
-</in>
-<out>
- <port name="update" />
-</out>
-</model>
-<model name="Unit" type="atomic" conditions="condEqDiff,condParametres,condUnit" dynamics="dynUnit" observables="obsUnit" x="504" y="144" width="100" height="105" >
+<model name="Unit" type="atomic" conditions="condEqDiff,condParametres,condUnit" dynamics="dynUnit" observables="obsUnit" height="105" >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />
@@ -200,52 +195,9 @@
  <port name="out" />
 </out>
 </model>
-</submodels>
-<connections>
-<connection type="output">
- <origin model="Unit" port="AreaActive" />
- <destination model="Unit" port="AreaActive" />
-</connection>
-<connection type="output">
- <origin model="Unit" port="out" />
- <destination model="Unit" port="out" />
-</connection>
-<connection type="input">
- <origin model="Unit" port="ActionTemp" />
- <destination model="Unit" port="ActionTemp" />
-</connection>
-<connection type="input">
- <origin model="Unit" port="TempEff" />
- <destination model="Unit" port="TempEff" />
-</connection>
-<connection type="input">
- <origin model="Unit" port="ThermalTime" />
- <destination model="Unit" port="ThermalTime" />
-</connection>
-<connection type="input">
- <origin model="Unit" port="perturb" />
- <destination model="Unit" port="perturb" />
-</connection>
-<connection type="internal">
- <origin model="Connector" port="add" />
- <destination model="Deposition" port="add" />
-</connection>
-<connection type="internal">
- <origin model="Deposition" port="update" />
- <destination model="Unit" port="in" />
-</connection>
-</connections>
-</model>
-</class>
-<class name="node-init" >
-<model name="node-init" type="atomic" conditions="condEqDiff,condUnit_0" dynamics="dynUnit_0" >
-<out>
- <port name="update" />
-</out>
-</model>
 </class>
 </classes>
-<experiment name="exp" duration="149.000000000000000" begin="2455309.000000000000000" combination="linear" seed="1" >
+<experiment name="exp" duration="149.000000000000000" begin="2455302.000000000000000" combination="linear" seed="1" >
 <replicas seed="581869302" number="1" />
 <conditions>
 <condition name="condCropClimate" >
@@ -261,7 +213,7 @@
 <string>port</string>
 </port>
  <port name="variables" >
-<set><set><string>CropDeseased</string></set><set><string>LAI</string></set><set><string>RLAI</string></set></set>
+<set><set><string>LAI</string></set></set>
 </port>
 </condition>
 <condition name="condCropPhenology" >
@@ -275,11 +227,6 @@
 <condition name="condCropScaling" >
  <port name="name" >
 <string>CropAreaActive</string>
-</port>
-</condition>
-<condition name="condDeposition" >
- <port name="name" >
-<string>out</string>
 </port>
 </condition>
 <condition name="condEqDiff" >
@@ -320,32 +267,23 @@
  <port name="C_Density" >
 <double>10.000000000000000</double>
 </port>
- <port name="E_GridClasses" >
-<string>Unit Unit Unit Unit Unit Unit Unit Unit Unit</string>
-</port>
- <port name="E_GridMatrix" >
-<string>0 1 0 1 0 0 0 0 0 1 0 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 0 1 0 1 0 1 0 0 0 0 0 1 0 1 0</string>
-</port>
- <port name="E_GridNumber" >
-<integer>9</integer>
-</port>
  <port name="E_InfectiousPeriod" >
 <double>10.000000000000000</double>
 </port>
- <port name="E_InitSpace" >
-<tuple>8.000000000000000</tuple>
+ <port name="E_InitQuantity" >
+<double>0.010000000000000</double>
 </port>
  <port name="E_InitTime" >
-<double>30.000000000000000</double>
+<double>50.000000000000000</double>
 </port>
  <port name="E_LatentPeriod" >
-<double>5.000000000000000</double>
+<double>3.000000000000000</double>
 </port>
  <port name="E_RateAlloDeposition" >
 <double>0.400000000000000</double>
 </port>
  <port name="E_RateDeseaseTransmission" >
-<double>0.500000000000000</double>
+<double>0.600000000000000</double>
 </port>
  <port name="M_TempOpt" >
 <double>25.000000000000000</double>
@@ -354,12 +292,12 @@
 <double>1.000000000000000</double>
 </port>
  <port name="P_SlopeExpansion" >
-<double>0.015000000000000</double>
+<double>0.020000000000000</double>
 </port>
  <port name="P_SlopeSenescence" >
 <double>0.030000000000000</double>
 </port>
- <port name="P_TTFlo" >
+ <port name="P_TTReproductive" >
 <double>1500.000000000000000</double>
 </port>
  <port name="P_TempBase" >
@@ -369,18 +307,10 @@
 <double>300.000000000000000</double>
 </port>
  <port name="P_UnitTTInit" >
-<set><double>70.000000000000000</double><double>70.000000000000000</double><double>70.000000000000000</double><double>50.000000000000000</double></set>
+<tuple>70.000000000000000 70.000000000000000 70.000000000000000 50.000000000000000</tuple>
 </port>
  <port name="P_UnitTTSen" >
-<double>1200.000000000000000</double>
-</port>
-</condition>
-<condition name="condPilot" >
- <port name="port" >
-<string>out</string>
-</port>
- <port name="prefix" >
-<string>node</string>
+<double>1000.000000000000000</double>
 </port>
 </condition>
 <condition name="condUnit" >
@@ -388,7 +318,7 @@
 <string>port</string>
 </port>
  <port name="variables" >
-<set><set><string>AreaHealthy</string></set><set><string>AreaExpansion</string></set><set><string>AreaSenescence</string></set><set><string>AreaActive</string></set><set><string>AreaLatent</string></set><set><string>AreaInfectious</string></set><set><string>AreaRemoved</string></set><set><string>RateAreaExpansion</string></set><set><string>RateAreaSenescence</string></set><set><string>RateDeseaseTransmission</string></set></set>
+<set><set><string>AreaActive</string></set><set><string>out</string></set></set>
 </port>
 </condition>
 <condition name="condUnit_0" >
@@ -431,6 +361,16 @@
 
 <port name="ThermalTime" >
  <attachedview name="vueDebug" />
+ <attachedview name="vueSensitivity" />
+</port>
+
+</observable>
+
+<observable name="obsCropScaling" />
+
+<observable name="obsInitiation" >
+<port name="InitQuantity" >
+ <attachedview name="vueDebug" />
 </port>
 
 </observable>
@@ -452,7 +392,6 @@
 
 <port name="AreaInfectious" >
  <attachedview name="vueDebug" />
- <attachedview name="vueSensitivity" />
 </port>
 
 <port name="AreaLatent" >
@@ -463,7 +402,17 @@
  <attachedview name="vueDebug" />
 </port>
 
+<port name="AreaRemovedByDesease" >
+ <attachedview name="vueSensitivity" />
+</port>
+
 <port name="AreaSenescence" />
+
+<port name="InDeposition" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="InitQuantity" />
 
 <port name="RateAreaExpansion" >
  <attachedview name="vueDebug" />
@@ -473,7 +422,17 @@
  <attachedview name="vueDebug" />
 </port>
 
-<port name="RateDeseaseTransmission" >
+<port name="RateDeseaseTransmission" />
+
+<port name="Receptivity" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="ScoreArea" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="ThermalAge" >
  <attachedview name="vueDebug" />
 </port>
 

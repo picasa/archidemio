@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="275" y="40" width="100" height="120"  >
+<model name="Crop" type="coupled" x="275" y="40" width="1006" height="502"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -80,7 +80,7 @@
  <port name="AreaLatent" />
 </out>
 </model>
-<model name="UnitPilot" type="atomic" conditions="condParametres" dynamics="dynPiloteGraph" x="400" y="135" width="100" height="45" >
+<model name="UnitPilot" type="atomic" conditions="condParametres,condPilot" dynamics="dynPiloteGraph" x="400" y="135" width="100" height="45" >
 <out>
  <port name="add" />
 </out>
@@ -320,14 +320,23 @@
  <port name="C_Density" >
 <double>10.000000000000000</double>
 </port>
+ <port name="E_GridClasses" >
+<string>Unit Unit Unit Unit Unit Unit Unit Unit Unit</string>
+</port>
+ <port name="E_GridMatrix" >
+<string>0 1 0 1 0 0 0 0 0 1 0 1 0 1 0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 1 0 0 0 1 0 1 0 1 0 1 0 0 0 1 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 0 1 0 1 0 1 0 0 0 0 0 1 0 1 0</string>
+</port>
+ <port name="E_GridNumber" >
+<integer>9</integer>
+</port>
  <port name="E_InfectiousPeriod" >
 <double>10.000000000000000</double>
 </port>
- <port name="E_Init" >
-<double>50.000000000000000</double>
-</port>
  <port name="E_InitSpace" >
-<tuple>0.000000000000000</tuple>
+<tuple>8.000000000000000</tuple>
+</port>
+ <port name="E_InitTime" >
+<double>30.000000000000000</double>
 </port>
  <port name="E_LatentPeriod" >
 <double>5.000000000000000</double>
@@ -364,6 +373,14 @@
 </port>
  <port name="P_UnitTTSen" >
 <double>1200.000000000000000</double>
+</port>
+</condition>
+<condition name="condPilot" >
+ <port name="port" >
+<string>out</string>
+</port>
+ <port name="prefix" >
+<string>node</string>
 </port>
 </condition>
 <condition name="condUnit" >

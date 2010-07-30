@@ -40,16 +40,16 @@ public:
            const vd::InitEventList& events) :
             ve::fsa::Statechart(init, events)
     {
-	mIndex = 0;
-	ThermalTime0 = 0;
-	ThermalTime = 0;
-	P_UnitTTExp = 0;
-	P_UnitTTSen = 0;
-	P_TTFlo = 0;
+        mIndex = 0;
+        ThermalTime0 = 0;
+        ThermalTime = 0;
+        P_UnitTTExp = 0;
+        P_UnitTTSen = 0;
+        P_TTReproductive = 0;
         
         P_UnitTTExp = vv::toDouble(events.get("P_UnitTTExp"));
 		P_UnitTTSen = vv::toDouble(events.get("P_UnitTTSen"));
-		P_TTFlo = vv::toDouble(events.get("P_TTFlo"));
+		P_TTReproductive = vv::toDouble(events.get("P_TTReproductive"));
         
 
         /* Définition de la liste des conditions gérant l'initiation des unités (GVLE, condition type "Set")
@@ -122,7 +122,7 @@ public:
     bool flowering(const vd::Time& /* time */)
     { 
         //if (mIndex > P_UnitTTInit.size()) {
-        return ThermalTime > P_TTFlo;
+        return ThermalTime > P_TTReproductive;
         //} 
         //return false;
     }
@@ -167,7 +167,7 @@ private:
     double ThermalTime;
     double P_UnitTTExp;
     double P_UnitTTSen;
-    double P_TTFlo;
+    double P_TTReproductive;
 };
 
 
