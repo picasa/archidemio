@@ -52,6 +52,6 @@ namespace Crop {
 
     };
 }
-DECLARE_NAMED_DIFFERENCE_EQUATION_MULTIPLE_DBG(passive, Crop::passive); // balise specifique VLE
+DECLARE_NAMED_DIFFERENCE_EQUATION_MULTIPLE_DBG(passive, Crop::passive); 
 
 
