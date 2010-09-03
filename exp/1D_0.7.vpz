@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="273" y="38" width="1006" height="502"  >
+<model name="Crop" type="coupled" x="274" y="38" width="1006" height="502"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -79,7 +79,7 @@
 </model>
 <model name="CropState" type="atomic" conditions="condEqDiff" dynamics="dynPassive" x="93" y="353" width="100" height="30" >
 </model>
-<model name="Initiation" type="atomic" conditions="condEqDiff,condParametres" dynamics="dynPassive" x="388" y="131" width="100" height="45" >
+<model name="Initiation" type="atomic" conditions="condEqDiff,condParametres" dynamics="dynInitiation" x="388" y="131" width="100" height="45" >
 <out>
  <port name="InitQuantity" />
 </out>
@@ -129,11 +129,11 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="Buffer" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="UnitPilot" port="ThermalTime" />
+ <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropScaling" port="update" />
@@ -332,9 +332,9 @@
 </conditions>
 <views>
 <outputs>
-<output name="vueDebug" location="" format="local" plugin="dummy" />
+<output name="vueDebug" location="" format="local" plugin="storage" />
 
-<output name="vueSensitivity" location="" format="local" plugin="storage" />
+<output name="vueSensitivity" location="" format="local" plugin="dummy" />
 
 </outputs>
 <observables>

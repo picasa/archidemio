@@ -251,7 +251,8 @@ g + geom_histogram() +
 
 histogram(~ y, data=f.out, type="count")
 with(f.out, perspPlus(E_InitTime, E_InitQuantity, y, nomx="InitTime", nomy="InitQuantity",nomz="y"))
-with(f.out, surface3d(E_InitTime, E_InitQuantity, y))
+
+parallel(~ f.out[c(8,1,4,3,2)], data=f.out, alpha=0.05, lty=1, col="black")
 
 # Metamodèle
 f.m = with(f.out, lm( y ~ polym(E_InitTime, E_RateAlloDeposition, E_InitQuantity, degree=3)))
