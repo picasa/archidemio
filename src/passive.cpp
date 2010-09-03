@@ -22,6 +22,7 @@
 
 
 #include <vle/extension/DifferenceEquation.hpp>
+#include <vle/extension/DifferenceEquationDbg.hpp>
 
 namespace Crop {
 

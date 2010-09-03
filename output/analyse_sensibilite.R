@@ -253,11 +253,6 @@ histogram(~ y, data=f.out, type="count")
 with(f.out, perspPlus(E_InitTime, E_InitQuantity, y, nomx="InitTime", nomy="InitQuantity",nomz="y"))
 with(f.out, surface3d(E_InitTime, E_InitQuantity, y))
 
-v <- ggplot(data=f.out, aes(x = E_InitTime, y = E_InitQuantity, z = y))
-v + geom_tile(aes(fill = y)) +
-	stat_contour() +
-	scale_fill_gradient(low="white", high="black") 
-
 # Metamodèle
 f.m = with(f.out, lm( y ~ polym(E_InitTime, E_RateAlloDeposition, E_InitQuantity, degree=3)))
 summary(f.m)

@@ -40,7 +40,7 @@
  <port name="out" />
 </out>
 </model>
-<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynCropClimate" observables="obsCropClimate" x="233" y="41" width="100" height="60" >
+<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynPassive" observables="obsCropClimate" x="233" y="41" width="100" height="60" >
 <in>
  <port name="RH" />
  <port name="TempMean" />
@@ -129,11 +129,11 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="UnitPilot" port="ThermalTime" />
+ <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="Buffer" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropScaling" port="update" />
@@ -174,7 +174,7 @@
 <dynamic name="dynCropScaling" library="glue" model="SumDynamicsDbg" package="glue" type="local"  />
 <dynamic name="dynInitiation" library="Initiation" model="Initiation" package="archidemio" type="local"  />
 <dynamic name="dynMeteo" library="meteo" model="GenericWithHeader" package="meteo" type="local"  />
-<dynamic name="dynPassive" library="emptylibrary" model="simple" package="archidemio" type="local"  />
+<dynamic name="dynPassive" library="emptylibrary" model="passive" package="archidemio" type="local"  />
 <dynamic name="dynUnit" library="Unit" model="" package="archidemio" type="local"  />
 <dynamic name="dynUnitConstructionGen" library="UnitConstructionGen" model="ExecutiveFSA" package="archidemio" type="local"  />
 <dynamic name="dynUnitPilot" library="Pilote" model="PiloteFSA" package="archidemio" type="local"  />
@@ -182,7 +182,7 @@
 </dynamics>
 <classes>
 <class name="Unit" >
-<model name="Unit" type="atomic" conditions="condEqDiff,condParametres,condUnit" dynamics="dynUnit" observables="obsUnit" height="105" >
+<model name="Unit" type="atomic" conditions="condEqDiff,condParametres,condUnit" dynamics="dynUnit" observables="obsUnit" >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />
