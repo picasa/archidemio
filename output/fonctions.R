@@ -108,6 +108,26 @@ lhs2bounds <- function (M, bounds, factors) {
     return(mat)
 }
 
+### lhs.plan : Construire un plan d'expérience de type hypercube latin
+getPlanLHS <- function (factors, bounds, n, repet = NULL, tout = FALSE) 
+{
+    plan = randomLHS(n, nrow(bounds))
+    tirage.lhs = as.data.frame(plan)
+    names(tirage.lhs) = bounds$name
+    plan = lhs2bounds(plan, bounds=bounds[, c("min", "max")], factors=factors)
+    plan = as.data.frame(plan)
+    if (!is.null(repet)) {
+        rep = sample(seq(repet[, "min"], repet[, "max"]), n, 
+            replace = TRUE)
+        plan = cbind(plan, rep)
+        names(plan) = c(bounds$name, repet[, "name"])
+    }
+    if (tout) 
+        retour = list(plan = plan, tirage.lhs = tirage.lhs)
+    else retour = plan
+    return(retour)
+}
+
 ## getPlanMorris : Obtenir un objet adapté à la méthode Morris.
 getPlanMorris <- function(factors,  binf=bounds$min, bsup=bounds$max, S=10, K=6, delta=K/(2*(K-1))) {
 	# S : pas suffisamment grand pour être sensible aux effets des facteurs
@@ -149,7 +169,7 @@ getPlanSobol <- function(factors,  bounds, n, order = 1, nboot = 0, conf = 0.95)
 
 	
 	# Construction du plan d'expérience
-	m <- sobol(model = NULL, M1.i, M2.i, order, nboot, conf)
+	m <- sobol2002(model = NULL, M1.i, M2.i, order = order, nboot = nboot, conf = conf)
 	return(m)
 }
 
@@ -163,42 +183,99 @@ rvle.addPlanCondition <- function(self, condition, plan=f.plan, factors) {
 	}
 }
 
+## compute.output : Résumer les sorties brutes du modèle (d.raw) en une variable d'interet
+# pour l'analyse de sensibilité
+compute.output <- function (plan=f.as$X, d.raw) {
+	
+	# Mise en forme des données brutes de simulation
+	d.long <- lapply(d.raw, melt, id=c("time","Top model,Crop:CropPhenology.ThermalTime"))
+	
+	# Résumé des données brutes : intégration sur la durée de simulation et sur les instances
+	y=NULL
+	for (i in 1:length(d.long)) {
+		y=c(y, sum(d.long[[i]]$value, na.rm=T))
+	}
+	
+	# Construction d'un objet contenant le plan d'expérience (X) et la réponse du modèle
+	return(data.frame(plan, y))
+}
+
+
 ## Méthodes graphiques comparables selon les méthodes d'analyse de sensibilité
 ## plot.morris
-plot.morris <- function (x, factors, ...) {
+plot.morris <- function (x, factors, gfx = TRUE) {
 
 	# Calcul indices (cf. getS3method("plot","morris"))
 	index <- data.frame(
+		type = "Morris",
 		labels = factor(colnames(x$ee), levels=factors),
-		mu.star = apply(x$ee, 2, function(x) mean(abs(x))),
-		sigma = apply(x$ee, 2, sd)
+		first = apply(x$ee, 2, function(x) mean(abs(x))),
+		total = apply(x$ee, 2, sd)
 		
 	)
 	
-	# Dotplot
-	trellis.par.set(canonical.theme(color = FALSE))
-	dotplot(labels ~ mu.star + sigma, data=index, auto.key=list(space="bottom"), 
-		xlab="Sensitivity indexes"
-	)
+	# Dotplot	
+	if (gfx == TRUE) {
+		trellis.par.set(canonical.theme(color = FALSE))
+		dotplot(labels ~ first + total, data=index, auto.key=list(space="bottom"), 
+			xlab="Sensitivity indexes (Morris)"
+		)	
+	} else {
+		return(index)
+	}	
 }
 
 ## plot.fast
-plot.fast <- function (x, factors, ...) {
+plot.fast <- function (x, factors, gfx = TRUE) {
 
 	# Calcul indices (cf. getS3method("plot","fast99"))
 	index <- data.frame(
+		type = "FAST",
 		labels = factor(colnames(x$X), levels=factors),
 		first = x$D1/x$V,
 		total = 1 - x$Dt/x$V	
 	)
 	
-	# Dotplot
-	trellis.par.set(canonical.theme(color = FALSE))
-	dotplot(labels ~ first + total, data=index, auto.key=list(space="bottom"), 
-		xlim=c(-0.1,1.1), xlab="Sensitivity indexes"
-	)
+	# Dotplot	
+	if (gfx == TRUE) {
+		trellis.par.set(canonical.theme(color = FALSE))
+		dotplot(labels ~ first + total, data=index, auto.key=list(space="bottom"), 
+			xlim=c(-0.1,1.1), xlab="Sensitivity indexes (FAST)"
+		)
+	} else {
+		return(index)
+	}		
 }
 
+## plot.sobol
+plot.sobol <- function (x, factors, gfx = TRUE) {
+
+	# Calcul indices (cf. getS3method("plot","sobol"))
+	index <- data.frame(
+		type = "Sobol",
+		labels = factor(colnames(x$X), levels=factors),
+		first = x$S[,1],
+		total = x$T[,1]	
+	)
+	#index <- melt(index)
+	
+	# Dotplot
+	if (gfx == TRUE) {
+		trellis.par.set(canonical.theme(color = FALSE))
+		dotplot(labels ~ first + total, data=index, auto.key=list(space="bottom"), 
+			xlim=c(-0.1,1.1), xlab="Sensitivity indexes (Sobol)"
+		)
+	} else {
+		return(index)
+	}	
+	
+	# Dotplot bibliothèque ggplot
+	#src <- ggplot(index, aes(labels, value))
+	#src + geom_point(aes(shape = variable)) + 
+	#	scale_x_discrete("") +
+	#	scale_y_continuous(limits=c(0, 1), "Sensitivity indexes (Sobol)") + 
+	#	theme_bw() + coord_flip()
+}
 
 
 

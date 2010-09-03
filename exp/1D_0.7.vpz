@@ -129,11 +129,11 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="Buffer" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="UnitPilot" port="ThermalTime" />
+ <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropScaling" port="update" />
@@ -332,9 +332,9 @@
 </conditions>
 <views>
 <outputs>
-<output name="vueDebug" location="" format="local" plugin="storage" />
+<output name="vueDebug" location="" format="local" plugin="dummy" />
 
-<output name="vueSensitivity" location="" format="local" plugin="dummy" />
+<output name="vueSensitivity" location="" format="local" plugin="storage" />
 
 </outputs>
 <observables>
@@ -402,9 +402,7 @@
  <attachedview name="vueDebug" />
 </port>
 
-<port name="AreaRemovedByDesease" >
- <attachedview name="vueSensitivity" />
-</port>
+<port name="AreaRemovedByDesease" />
 
 <port name="AreaSenescence" />
 
@@ -430,6 +428,7 @@
 
 <port name="ScoreArea" >
  <attachedview name="vueDebug" />
+ <attachedview name="vueSensitivity" />
 </port>
 
 <port name="ThermalAge" >
