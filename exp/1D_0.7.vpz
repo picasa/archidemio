@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1294" height="580"  >
+<model name="Top model" type="coupled" x="0" y="0" width="1295" height="596"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="274" y="38" width="1006" height="502"  >
+<model name="Crop" type="coupled" x="274" y="38" width="100" height="120"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -24,7 +24,7 @@
  <port name="TempMin" />
 </in>
 <submodels>
-<model name="Buffer" type="atomic" dynamics="dynUnitConstructionGen" x="624" y="302" width="100" height="105" >
+<model name="Buffer" type="atomic" dynamics="dynUnitConstructionGen" x="532" y="294" width="100" height="105" >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />
@@ -50,7 +50,7 @@
  <port name="ActionTemp" />
 </out>
 </model>
-<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynCropLeafArea" observables="obsCropLeafArea" x="797" y="240" width="100" height="45" >
+<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynCropLeafArea" observables="obsCropLeafArea" x="757" y="433" width="100" height="45" >
 <in>
  <port name="CropAreaActive" />
 </in>
@@ -69,7 +69,7 @@
  <port name="ThermalTime" />
 </out>
 </model>
-<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynCropScaling" observables="obsCropScaling" x="795" y="147" width="100" height="45" >
+<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynCropScaling" observables="obsCropScaling" x="755" y="340" width="100" height="45" >
 <in>
  <port name="add" />
 </in>
@@ -77,14 +77,14 @@
  <port name="update" />
 </out>
 </model>
-<model name="CropState" type="atomic" conditions="condEqDiff" dynamics="dynPassive" x="93" y="353" width="100" height="30" >
+<model name="CropState" type="atomic" conditions="condEqDiff" dynamics="dynPassive" x="89" y="395" width="100" height="30" >
 </model>
-<model name="Initiation" type="atomic" conditions="condEqDiff,condParametres" dynamics="dynInitiation" x="388" y="131" width="100" height="45" >
+<model name="Initiation" type="atomic" conditions="condEqDiff,condParametres" dynamics="dynInitiation" x="523" y="114" width="100" height="45" >
 <out>
  <port name="InitQuantity" />
 </out>
 </model>
-<model name="UnitPilot" type="atomic" conditions="condParametres" dynamics="dynUnitPilot" x="388" y="238" width="100" height="45" >
+<model name="UnitPilot" type="atomic" conditions="condParametres" dynamics="dynUnitPilot" x="359" y="209" width="100" height="45" >
 <in>
  <port name="ThermalTime" />
 </in>
@@ -92,7 +92,7 @@
  <port name="add" />
 </out>
 </model>
-<model name="Unit_0" type="atomic" conditions="condEqDiff,condUnit_0" dynamics="dynUnit_0" observables="obsUnit_0" x="618" y="215" width="100" height="45" >
+<model name="Unit_0" type="atomic" conditions="condEqDiff,condUnit_0" dynamics="dynUnit_0" observables="obsUnit_0" x="526" y="207" width="100" height="45" >
 <out>
  <port name="update" />
 </out>
@@ -129,11 +129,11 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="UnitPilot" port="ThermalTime" />
+ <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="Buffer" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropScaling" port="update" />
@@ -167,7 +167,6 @@
 </model>
 </structures>
 <dynamics>
-<dynamic name="dynBuffer" library="Buffer" model="Buffer" package="archidemio" type="local"  />
 <dynamic name="dynCropClimate" library="CropClimate" model="CropClimate" package="archidemio" type="local"  />
 <dynamic name="dynCropLeafArea" library="CropLeafArea" model="" package="archidemio" type="local"  />
 <dynamic name="dynCropPhenology" library="CropPhenology" model="CropPhenology" package="archidemio" type="local"  />
@@ -332,9 +331,9 @@
 </conditions>
 <views>
 <outputs>
-<output name="vueDebug" location="" format="local" plugin="storage" />
+<output name="vueDebug" location="" format="local" plugin="dummy" />
 
-<output name="vueSensitivity" location="" format="local" plugin="dummy" />
+<output name="vueSensitivity" location="" format="local" plugin="storage" />
 
 </outputs>
 <observables>

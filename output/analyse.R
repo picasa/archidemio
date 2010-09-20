@@ -5,7 +5,7 @@ library(gdata)
 library(ggplot2)
 library(lattice)
 library(igraph)
-
+library(Cairo)
 ## Fonctions de simulation
 source("fonctions.R")
 
@@ -19,7 +19,7 @@ ObsTime = c(30, 60, 90, 120, 150)
 ##### Analyse et graphiques des sorties  modèle 1D #####
 ### Simulation
 f <- rvle.open("1D_0.7.vpz", "archidemio")
-sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
+sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=13)
 
 #### Graphiques
 ### Dynamiques des variables f(temps)
@@ -33,13 +33,17 @@ crop.gfx <- crop + geom_line() + facet_wrap(~ variable, scales="free", ncol=2) +
 # Variables "unite"
 #xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l")
 #Seulement les variables HLIR
-d <- sim.l[sim.l$variable %in% HLIR==T,]
+d <- drop.levels(sim.l[sim.l$variable %in% HLIR==T,])
+d$variable <- factor(d$variable, levels=HLIR)
 dynamique <- ggplot(d, aes(time, value, group=unit))
-dynamique.gfx <- dynamique + geom_line() + facet_wrap(~ variable, scales="free", ncol=2) + theme_bw()
+dynamique.gfx <- dynamique +
+	geom_line() +
+	facet_wrap(~ variable, scales="free", ncol=2) +
+	theme_bw() + ylab("% Unit Area")
 
 
 ### Profils d'infections
-# 5 date sur le cycle, en jours : A FAIRE, position relatives dans le cycle
+# 5 date sur le cycle, en jours : TO DO, position relatives dans le cycle
 p <- sim.l[(sim.l$variable %in% HLIR==T & sim.l$time %in% ObsTime==T),]
 p$time <- as.factor(p$time)
 p$unit <- as.numeric(p$unit)
@@ -76,14 +80,16 @@ profil.gfx <- profil +
 
 
 
-## Visualisation : deux types de vues : dynamique + profils
+## Visualisation : deux types de vues : dynamique + profil de surface malade (%)
 png(file="units.png", width=12, height=6, units="in", res=200, pointsize = 10)
+Cairo(file="units.pdf", width = 12, height = 6, units="in", type="pdf", pointsize=10) 
+
 grid.newpage()
 pushViewport(viewport(layout = grid.layout(1, 2)))
 vplayout <- function(x, y)
   viewport(layout.pos.row = x, layout.pos.col = y)
 print(dynamique.gfx, vp = vplayout(1, 1))
-print(profils.gfx, vp = vplayout(1, 2))
+print(profil.gfx, vp = vplayout(1, 2))
 dev.off()
 
 png(file="crop.png", width=6, height=6, units="in", res=200, pointsize = 10)
@@ -137,28 +143,15 @@ for (i in seq(5,SimLength, by=5)) {
 
 
 #### Analyse et graphiques des sorties  modèle 2D ####
-
-## Generer la matrice d'adjacence
-n = 400
-G <- graph.lattice(c(sqrt(n),sqrt(n)))
-M <- get.adjacency(G)
-rownames(M)<-c(1:n)-1
-colnames(M)<-c(1:n)-1
-
-## Passer ces conditions dans VLE
 f <- rvle.open("2D_0.7.vpz", "archidemio")
 
-rvle.setIntegerCondition(f, "condParametres", "E_GridNumber", n)
-rvle.setStringCondition(f, "condParametres", "E_GridClasses", paste(rep("Unit",n), collapse=" "))
-rvle.setStringCondition(f, "condParametres", "E_GridMatrix", paste(as.vector(M), collapse=" "))
-rvle.setTupleCondition(f, "condParametres", "E_InitSpace", c(5,255,300))
-#rvle.getAllConditionPortValues(f, "condParametres")
+rvle.setTranslator(f, condition="condParametres", class="Unit", n=100, init=3)
 
-## Simulation
+## Simulation (97s pour 20x20 (n=400))
 #sim <- rvle.run(f)
-system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=9))
+system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=10))
 
-## Agrégation des sorties
+## Mise en forme des sortie : table 3D  {x, y, valeur de sortie}
 # Sur le cycle
 m.i <- aggregate(value ~ unit, data=sim.l, sum, subset=sim.l$variable=="AreaInfectious")
 m.i <- data.frame(
@@ -166,6 +159,15 @@ m.i <- data.frame(
 	y = rep(1:sqrt(n), each=sqrt(n)),
 	score = m.i$value
 )
+# Valeur finale
+m.s <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")
+m.s <- data.frame(
+	x = rep(sqrt(n):1,sqrt(n)),
+	y = rep(1:sqrt(n), each=sqrt(n)),
+	score = m.s$value
+)
+
+
 # intégration à différents pas de temps
 m.t <- NULL
 for (t in ObsTime) {
@@ -190,14 +192,15 @@ m.s <- data.frame(
 
 ## Visualisation : matrices + contour
 # intégration
-v <- ggplot(data=m.i, aes(x, y, z = score))
-grid.i <- v + geom_tile(aes(fill = score)) +
+v <- ggplot(data=m.s, aes(x, y, z = score))
+grid.s <- v + geom_tile(aes(fill = score)) +
 	stat_contour(bins = sqrt(n)/2) +
 	scale_fill_gradient(low="white", high="black") +
-	scale_y_reverse() + opts(aspect.ratio = 1)
-	
+	scale_y_reverse() + opts(aspect.ratio = 1) + theme_bw()
+
+Cairo(file="grid_final.pdf", width = 6, height = 6, units="in", type="pdf", pointsize=10) 	
 png(file="grid_final.png", width=6, height=6, units="in", res=200, pointsize = 10)
-print(grid.i)
+print(grid.s)
 dev.off()
 
 # evolution & intégration

@@ -2,9 +2,9 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1006" height="502"  >
+<model name="Top model" type="coupled" x="0" y="0" width="466" height="582"  >
 <submodels>
-<model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
+<model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="35" y="45" width="100" height="120" >
 <out>
  <port name="ETP" />
  <port name="RH" />
@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="275" y="40" width="1006" height="502"  >
+<model name="Crop" type="coupled" x="275" y="40" width="100" height="120"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -24,7 +24,7 @@
  <port name="TempMin" />
 </in>
 <submodels>
-<model name="Buffer" type="atomic" conditions="condParametres" dynamics="dynUnitConstruction" x="596" y="274" width="100" height="90" >
+<model name="Buffer" type="atomic" conditions="condParametres" dynamics="dynUnitConstruction" x="531" y="150" width="100" height="90" >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />
@@ -38,7 +38,7 @@
  <port name="addModelCropScaling" />
 </out>
 </model>
-<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynCropClimate" observables="obsCropClimate" x="210" y="55" width="100" height="60" >
+<model name="CropClimate" type="atomic" conditions="condCropClimate,condEqDiff,condParametres" dynamics="dynCropClimate" observables="obsCropClimate" x="199" y="53" width="100" height="60" >
 <in>
  <port name="RH" />
  <port name="TempMean" />
@@ -48,7 +48,7 @@
  <port name="ActionTemp" />
 </out>
 </model>
-<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynPassive" observables="obsCropLeafArea" x="806" y="155" width="100" height="45" >
+<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynCropLeafArea" observables="obsCropLeafArea" x="762" y="305" width="100" height="45" >
 <in>
  <port name="CropAreaActive" />
 </in>
@@ -56,7 +56,7 @@
  <port name="LAI" />
 </out>
 </model>
-<model name="CropPhenology" type="atomic" conditions="condCropPhenology,condEqDiff,condParametres" dynamics="dynCropPhenology" observables="obsCropPhenology" x="78" y="273" width="100" height="75" >
+<model name="CropPhenology" type="atomic" conditions="condCropPhenology,condEqDiff,condParametres" dynamics="dynCropPhenology" observables="obsCropPhenology" x="70" y="155" width="100" height="75" >
 <in>
  <port name="TempMax" />
  <port name="TempMin" />
@@ -67,7 +67,7 @@
  <port name="ThermalTime" />
 </out>
 </model>
-<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynPassive" x="802" y="58" width="100" height="45" >
+<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynCropScaling" x="758" y="208" width="100" height="45" >
 <in>
  <port name="add" />
 </in>
@@ -75,12 +75,12 @@
  <port name="update" />
 </out>
 </model>
-<model name="Initiation" type="atomic" conditions="condParametres" dynamics="dynInitiation" x="396" y="61" width="100" height="45" >
+<model name="Initiation" type="atomic" conditions="condParametres" dynamics="dynInitiation" x="530" y="59" width="100" height="45" >
 <out>
  <port name="InitQuantity" />
 </out>
 </model>
-<model name="UnitPilot" type="atomic" conditions="condParametres,condPilot" dynamics="dynPiloteGraph" x="400" y="135" width="100" height="45" >
+<model name="UnitPilot" type="atomic" conditions="condParametres,condPilot" dynamics="dynPiloteGraph" x="376" y="56" width="100" height="45" >
 <out>
  <port name="add" />
 </out>
@@ -154,7 +154,7 @@
 <dynamic name="dynCropScaling" library="glue" model="SumDynamicsDbg" package="glue" type="local"  />
 <dynamic name="dynInitiation" library="Initiation" model="Initiation" package="archidemio" type="local"  />
 <dynamic name="dynMeteo" library="meteo" model="GenericWithHeader" package="meteo" type="local"  />
-<dynamic name="dynPassive" library="emptylibrary" model="simple" package="archidemio" type="local"  />
+<dynamic name="dynPassive" library="passive" model="passive" package="archidemio" type="local"  />
 <dynamic name="dynPiloteGraph" library="Pilote" model="PiloteGraph" package="archidemio" type="local"  />
 <dynamic name="dynUnit" library="Unit" model="" package="archidemio" type="local"  />
 <dynamic name="dynUnitConstruction" library="UnitConstructionGen" model="ExecutiveGraph" package="archidemio" type="local"  />
@@ -405,9 +405,9 @@
 </conditions>
 <views>
 <outputs>
-<output name="vueDebug" location="" format="local" plugin="storage" />
+<output name="vueDebug" location="" format="local" plugin="dummy" />
 
-<output name="vueSensitivity" location="" format="local" plugin="dummy" />
+<output name="vueSensitivity" location="" format="local" plugin="storage" />
 
 </outputs>
 <observables>
@@ -455,7 +455,6 @@
 
 <port name="AreaInfectious" >
  <attachedview name="vueDebug" />
- <attachedview name="vueSensitivity" />
 </port>
 
 <port name="AreaLatent" >
@@ -478,6 +477,11 @@
 
 <port name="RateDeseaseTransmission" >
  <attachedview name="vueDebug" />
+</port>
+
+<port name="ScoreArea" >
+ <attachedview name="vueDebug" />
+ <attachedview name="vueSensitivity" />
 </port>
 
 </observable>

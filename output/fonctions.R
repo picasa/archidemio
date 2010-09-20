@@ -93,6 +93,31 @@ rvle.getAllConditionPortValues <- function(self, condition) {
 }
 
 
+## rvle.setTranslator() : attribue des conditions pour l'extension GraphTranslator à un objet VLE
+## graphe : matrice de n noeuds à 4 voisins
+
+rvle.setTranslator <- function (object, condition, class, n=100, init=3) {
+
+	# Construction du graphe (matrice d'adjacence)
+	G <- graph.lattice(c(sqrt(n),sqrt(n)))
+	M <- get.adjacency(G)
+	rownames(M)<-c(1:n)-1
+	colnames(M)<-c(1:n)-1
+	
+	## Condition GraphTranslator
+	# n : nombre de noeuds (modèles) du graphe	
+	rvle.setIntegerCondition(object, condition, "E_GridNumber", n)
+	# Vecteur (string) : modèles à instancier à chaque noeud
+	rvle.setStringCondition(object, condition, "E_GridClasses", paste(rep(class,n), collapse=" "))
+	# Vecteur (string) : Matrice d'adjacence 
+	rvle.setStringCondition(object, condition, "E_GridMatrix", paste(as.vector(M), collapse=" "))
+	# Tuple : noeuds d'infection, tirage uniforme dans 1:n
+	rvle.setTupleCondition(object, condition, "E_InitSpace", round(runif(init,1,n)))
+	
+	# Sortie
+	#return(M)
+}
+ 
 
 
 
@@ -129,12 +154,12 @@ getPlanLHS <- function (factors, bounds, n, repet = NULL, tout = FALSE)
 }
 
 ## getPlanMorris : Obtenir un objet adapté à la méthode Morris.
-getPlanMorris <- function(factors,  binf=bounds$min, bsup=bounds$max, S=10, K=6, delta=K/(2*(K-1))) {
+getPlanMorris <- function(factors,  binf=bounds$min, bsup=bounds$max, S=100, K=6, delta=K/(2*(K-1))) {
 	# S : pas suffisamment grand pour être sensible aux effets des facteurs
 	# K : nombre de niveau de la grille
 	
 	# Construction du plan d'expérience	
-	m <- morris(model=NULL, factors=factors, r = S, scale=F,
+	m <- morris(model=NULL, factors=factors, r = S, scale=T,
 				design = list(type="oat", levels=K, grid.jump=delta*(K-1)),
 				binf = binf,
 				bsup = bsup
@@ -184,16 +209,27 @@ rvle.addPlanCondition <- function(self, condition, plan=f.plan, factors) {
 }
 
 ## compute.output : Résumer les sorties brutes du modèle (d.raw) en une variable d'interet
-# pour l'analyse de sensibilité
-compute.output <- function (plan=f.as$X, d.raw) {
+# pour l'analyse de sensibilité : pour modèle 1D & 2D
+compute.output <- function (plan, data, type="1D") {
 	
-	# Mise en forme des données brutes de simulation
-	d.long <- lapply(d.raw, melt, id=c("time","Top model,Crop:CropPhenology.ThermalTime"))
-	
-	# Résumé des données brutes : intégration sur la durée de simulation et sur les instances
-	y=NULL
-	for (i in 1:length(d.long)) {
-		y=c(y, sum(d.long[[i]]$value, na.rm=T))
+	if (type == "1D") {
+		# Mise en forme des données brutes de simulation 1D
+		d.long <- lapply(data, melt, id=c("time","Top model,Crop:CropPhenology.ThermalTime"))
+		
+		# Résumé des données brutes : intégration sur la durée de simulation et sur les instances
+		y=NULL
+		for (i in 1:length(d.long)) {
+			y=c(y, sum(d.long[[i]]$value, na.rm=T))
+		}
+	} else {
+		# Mise en forme
+		d.long <- lapply(data, melt, id="time")
+		
+		# Intégration
+		y=NULL
+		for (i in 1:length(d.long)) {
+			y=c(y, sum(d.long[[i]]$value, na.rm=T))
+		}
 	}
 	
 	# Construction d'un objet contenant le plan d'expérience (X) et la réponse du modèle

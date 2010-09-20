@@ -7,6 +7,8 @@ library(lattice)
 library(sensitivity)
 library(lhs)
 library(rgl)
+library(igraph)
+library(Cairo)
 
 ### Fonctions de simulation & Paramétrage
 source("fonctions.R")
@@ -21,14 +23,20 @@ source("fonctions.R")
 # rvle.listConditionPorts(f,"condParametres")
 #f.factors.name <- rvle.listConditionPorts(f,"condParametres")
 
-factors.name <- c("E_InitTime","E_InfectiousPeriod",
-	"E_RateDeseaseTransmission","E_RateAlloDeposition","E_InitQuantity",
-	"E_LatentPeriod","P_UnitTTSen")
+factors.name <- c(
+	"E_InitTime",
+	"E_InfectiousPeriod",
+	"E_RateDeseaseTransmission",
+	"E_RateAlloDeposition",
+	"E_InitQuantity",
+	"E_LatentPeriod",
+	"P_UnitTTSen"
+)
 
 factors.bounds <- data.frame(
 	name = factors.name,
 	def = c(50, 10, 0.5, 0.2, 0.01, 5, 1000),
-	min = c(10, 1, 0, 0, 0, 1, 700),
+	min = c(30, 1, 0.05, 0.05, 0.05, 1, 700),
 	max = c(140, 15, 1, 1, 0.3, 15, 1300)
 )
 
@@ -38,7 +46,7 @@ bounds <- factors.bounds[1:7,]
 
 # Construire le plan
 # plan complet : f.plan <- expand.grid(va, vb)
-f.as <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=100, K=6)
+f.as <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K=6)
 f.as <- getPlanFast(factors, bounds, n=300)
 f.as <- getPlanSobol(factors, bounds, n=300)
 f.plan <- getPlanLHS(factors, bounds, n=1000)
@@ -61,10 +69,8 @@ rvle.setLinearCombination(f,1,1) 	# Linéaire
 system.time(d <- rvle.runManagerThread(f,2))
 
 ## 3. Indices de sensibilité
-# Calcul de la quantité d'interet
-# x <- lapply(d, melt, id=c("time","Top model,Crop:CropPhenology.ThermalTime"))
-# Intégration : somme sur t & unité
-f.out <- compute.output(obj=f.as, d.raw=d)
+# Calcul de la quantité d'interet : Intégration : somme sur t & unité
+f.out <- compute.output(plan=f.as$X, data=d)
 
 # Decoupling
 tell(f.as, f.out$y)
@@ -75,6 +81,7 @@ tell(f.as, f.out$y)
 plan <- as.data.frame(f.as$X)
 apply(plan, 2, table)
 splom(plan)
+parallel(~ plan, data=plan, alpha=0.05, lty=1, col="black")
 
 plan.l <- stack(as.data.frame(f.as$X))
 bwplot(~ values | ind, data=plan.l, scale="free")
@@ -89,12 +96,6 @@ xyplot(data=x[[1]], value ~ time, groups=variable, type="l")
 xyplot(data=f.out, y ~ 1:dim(f.out)[1] , type="l")
 histogram(~ y, data=f.out, type="count")
 
-out <- rbind(
-	data.frame(f.out, type="Morris"),
-	data.frame(f.out.fast, type="FAST")
-)
-histogram(~ y | type, data=out, type="count")
-
 # Indices
 plot(f.as)
 
@@ -105,21 +106,22 @@ plot.sobol(f.as.sobol, factors)
 
 
 
-
-
-
-
-
 ### Comparaison des méthodes
 ## Facteurs d'incertitude
-factors.name <- c("E_InitTime","E_InfectiousPeriod",
-	"E_RateDeseaseTransmission","E_RateAlloDeposition","E_InitQuantity",
-	"E_LatentPeriod","P_UnitTTSen")
+factors.name <- c(
+	"E_InitTime",
+	"E_InfectiousPeriod",
+	"E_RateDeseaseTransmission",
+	"E_RateAlloDeposition",
+	"E_InitQuantity",
+	"E_LatentPeriod",
+	"P_UnitTTSen"
+)
 
 factors.bounds <- data.frame(
 	name = factors.name,
 	def = c(50, 10, 0.5, 0.2, 0.01, 5, 1000),
-	min = c(10, 1, 0, 0, 0, 1, 700),
+	min = c(30, 1, 0.05, 0.05, 0.05, 1, 700),
 	max = c(140, 15, 1, 1, 0.3, 15, 1300)
 )
 
@@ -133,8 +135,8 @@ f.as.morris <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K
 rvle.addPlanCondition(f.morris, "condParametres", plan=f.as.morris$X, factors=factors)
 rvle.setLinearCombination(f.morris,1,1) 
 
-system.time(d <- rvle.runManagerThread(f.morris,2))
-f.out.morris <- compute.output(obj=f.as.morris, d.raw=d)
+system.time(d.morris <- rvle.runManagerThread(f.morris,2))
+f.out.morris <- compute.output(plan=f.as.morris$X, data=d.morris)
 
 tell(f.as.morris, f.out.morris$y)
 plot.morris(f.as.morris)
@@ -147,8 +149,8 @@ f.as.fast <- getPlanFast(factors, bounds, n=200)
 rvle.addPlanCondition(f.fast, "condParametres", plan=f.as.fast$X, factors=factors)
 rvle.setLinearCombination(f.fast,1,1) 
 
-system.time(d <- rvle.runManagerThread(f.fast,2))
-f.out.fast <- compute.output(obj=f.as.fast, d.raw=d)
+system.time(d.fast <- rvle.runManagerThread(f.fast,2))
+f.out.fast <- compute.output(plan=f.as.fast$X, data=d.fast)
 
 tell(f.as.fast, f.out.fast$y)
 plot.fast(f.as.fast)
@@ -160,14 +162,27 @@ f.as.sobol <- getPlanSobol(factors, bounds, n=300)
 rvle.addPlanCondition(f.sobol, "condParametres", plan=f.as.sobol$X, factors=factors)
 rvle.setLinearCombination(f.sobol,1,1) 
 
-system.time(d <- rvle.runManagerThread(f.sobol,2))
-f.out.sobol <- compute.output(obj=f.as.sobol, d.raw=d)
+system.time(d.sobol <- rvle.runManagerThread(f.sobol,2))
+f.out.sobol <- compute.output(plan=f.as.sobol$X, data=d.sobol)
 
 tell(f.as.sobol, f.out.sobol$y)
 plot.sobol(f.as.sobol)
 
 ## Graphique comparatif
-index <- rbind (
+# plans
+plans <- rbind(
+	data.frame(f.as.morris$X, type="morris"),
+	data.frame(f.as.fast$X, type="fast"),
+	data.frame(f.as.sobol$X, type="sobol"),
+	data.frame(getPlanLHS(factors, bounds, n=2000), type="lhs")
+)
+png(file="plans.png", width=12, height=6, units="in", res=200, pointsize = 10)
+trellis.par.set(canonical.theme(color = FALSE))
+parallel(~ plans[1:7] | type, data=plans, alpha=0.05, lty=1, col="black", layout=c(4,1))
+
+
+# sorties
+index <- rbind(
 	plot.morris(f.as.morris, gfx=F),
 	plot.fast(f.as.fast, gfx=F),
 	plot.sobol(f.as.sobol, gfx=F)	
@@ -180,53 +195,6 @@ dotplot(labels ~ first + total | type, data=index, auto.key=list(space="bottom")
 )	
 dev.off()
 
-## Pb : Morris donne des résultats contradictoires
-## Quelle exploration de l'espace par Morris ?
-# K=4
-f.morris <- rvle.open("1D_0.7.vpz", "archidemio")
-
-f.as.morris1 <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K=4)
-rvle.addPlanCondition(f.morris, "condParametres", plan=f.as.morris1$X, factors=factors)
-rvle.setLinearCombination(f.morris,1,1) 
-
-system.time(d <- rvle.runManagerThread(f.morris,2))
-f.out.morris1 <- compute.output(obj=f.as.morris, d.raw=d)
-
-tell(f.as.morris1, f.out.morris1$y)
-
-# K=6
-f.morris <- rvle.open("1D_0.7.vpz", "archidemio")
-
-f.as.morris2 <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K=6)
-rvle.addPlanCondition(f.morris, "condParametres", plan=f.as.morris2$X, factors=factors)
-rvle.setLinearCombination(f.morris,1,1) 
-
-system.time(d <- rvle.runManagerThread(f.morris,2))
-f.out.morris2 <- compute.output(obj=f.as.morris, d.raw=d)
-
-tell(f.as.morris2, f.out.morris2$y)
-
-# K=8
-f.morris <- rvle.open("1D_0.7.vpz", "archidemio")
-
-f.as.morris3 <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K=8)
-rvle.addPlanCondition(f.morris, "condParametres", plan=f.as.morris3$X, factors=factors)
-rvle.setLinearCombination(f.morris,1,1) 
-
-system.time(d <- rvle.runManagerThread(f.morris,2))
-f.out.morris3 <- compute.output(obj=f.as.morris, d.raw=d)
-
-tell(f.as.morris3, f.out.morris3$y)
-
-# Comparaison
-out <- rbind(
-	data.frame(f.out.morris1, type="Morris, K=4"),
-	data.frame(f.out.morris2, type="Morris, K=6"),
-	data.frame(f.out.morris3, type="Morris, K=8")
-)
-histogram(~ y | type, data=out, type="count")
-
-
 
 ## LHS
 f <- rvle.open("1D_0.7.vpz", "archidemio")
@@ -236,7 +204,7 @@ rvle.addPlanCondition(f, "condParametres", plan=f.plan, factors=factors)
 rvle.setLinearCombination(f,1,1)
 
 system.time(d <- rvle.runManagerThread(f,2))
-f.out <- compute.output(plan=f.plan, d.raw=d)
+f.out.lhs <- compute.output(plan=f.plan, d.raw=d)
 
 # Plan & Surface de réponse
 splom(f.plan, pch=".")
@@ -249,7 +217,7 @@ g + geom_histogram() +
 	facet_wrap(~ ind, scales="free", ncol=2) +
 	theme_bw()
 
-histogram(~ y, data=f.out, type="count")
+histogram(~ y, data=f.out.lhs, type="count")
 with(f.out, perspPlus(E_InitTime, E_InitQuantity, y, nomx="InitTime", nomy="InitQuantity",nomz="y"))
 
 parallel(~ f.out[c(8,1,4,3,2)], data=f.out, alpha=0.05, lty=1, col="black")
@@ -258,6 +226,41 @@ parallel(~ f.out[c(8,1,4,3,2)], data=f.out, alpha=0.05, lty=1, col="black")
 f.m = with(f.out, lm( y ~ polym(E_InitTime, E_RateAlloDeposition, E_InitQuantity, degree=3)))
 summary(f.m)
 anova(f.m)
+
+
+
+
+
+
+### Analyse de sensibilité sur modèle 2D
+f <- rvle.open("2D_0.7.vpz", "archidemio")
+rvle.setTranslator(f, condition="condParametres", class="Unit", n=100, init=3)
+
+f.as <- getPlanFast(factors, bounds, n=100)
+rvle.addPlanCondition(f, condition="condParametres", plan=f.as$X, factors=factors)
+rvle.setLinearCombination(f,1,1) 
+
+# ~ 14 min pour 700 simulations de 100 modèles (0.8 sim/s)
+system.time(d <- rvle.runManagerThread(f,2))
+f.out <- compute.output(plan=f.as$X, data=d, type="2D")
+
+tell(f.as, f.out$y)
+
+
+
+
+### Comparaison de la sensibilité des modèle 1D/2D
+index <- rbind(
+	cbind(type="1D", plot.fast(f.as.1D, gfx=F)[,2:4]),
+	cbind(type="2D", plot.fast(f.as.2D, gfx=F)[,2:4])
+)
+
+Cairo(file="sensitivity.pdf", width = 12, height = 6, units="in", type="pdf", pointsize=10) 
+trellis.par.set(canonical.theme(color = FALSE))
+dotplot(labels ~ first + total | type, data=index, auto.key=list(space="bottom"), 
+	xlab="Sensitivity indexes", scales="free", layout=c(2,1)
+)	
+dev.off()
 
 
 
