@@ -39,11 +39,13 @@ public:
         : ve::DifferenceEquation::Multiple(atom, evts)
     {
         // Parametres
+        C_Crop = vv::toInteger(evts.get("C_Crop"));
         P_AreaMax = vv::toDouble(evts.get("P_AreaMax"));
 		P_UnitTTExp = vv::toDouble(evts.get("P_UnitTTExp"));
 		P_UnitTTSen = vv::toDouble(evts.get("P_UnitTTSen"));
 		P_SlopeExpansion = vv::toDouble(evts.get("P_SlopeExpansion"));
 		P_SlopeSenescence = vv::toDouble(evts.get("P_SlopeExpansion"));
+        P_Porosity = vv::toDouble(evts.get("P_Porosity"));
         E_RateDeseaseTransmission = vv::toDouble(evts.get("E_RateDeseaseTransmission"));
         E_RateAlloDeposition = vv::toDouble(evts.get("E_RateAlloDeposition"));
         E_InfectiousPeriod = vv::toDouble(evts.get("E_InfectiousPeriod"));
@@ -96,8 +98,12 @@ virtual void compute(const vd::Time& /*time*/)
      * InDeposition/OutDeposition : variables "biologiques", decrit le fonctionnement
      */
     
+    /* 2 solutions pour agir sur les connexions entre unités :
+     * - modifier le graphe de connexions, et les connexions entre modèle en conséquence
+     * - ponderer les flux dejà existants (ici un test sur une condition environnementale)
+     */ 
     double InDeposition_tmp = In(-1);
-    if (TempEff() > 20) {
+    if (TempEff() > 40) {               // en attendant de faire référence à un état du système.
         InDeposition_tmp = 0;
     }
     InDeposition = InDeposition_tmp;  
@@ -110,8 +116,12 @@ virtual void compute(const vd::Time& /*time*/)
      * Linéaire croissant : Receptivity = fmin(1/1000 * ThermalAge() + 0.2, 1.2);
      * Sigmoide : Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2;
      * (paramètres : pente, asymptotes (haut et bas), abscisse pt d'inflexion)
-     */ 
-    Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2;
+     */
+    switch (C_Crop) {
+        case 1: Receptivity = 1 - (1 / (1 + exp(-0.001 * (ThermalAge() - 500)))); // Pdt (Décroissante)
+        case 2: Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2; // Pois (Croissante)
+        case 3: Receptivity = 0;
+    } 
     
     /* Periode de latence : durée en j.
      * Pour les parasites biotrophes, cette variable pèse bcp dans le dev de l'épidémie (Rapilly1990, Zadoks1971)
@@ -143,10 +153,10 @@ virtual void compute(const vd::Time& /*time*/)
     AreaSenescence = fmin(AreaSenescence(-1) + RateAreaSenescence(),P_AreaMax);
     
     // Vitesse d'infection au sein de l'unité (autodeposition)
-    RateDeseaseTransmission = E_RateDeseaseTransmission;
+    RateDeseaseTransmission = E_RateDeseaseTransmission * ActionTemp();
     
     // Vitesse d'infection entre unités (allodeposition)
-    RateAlloDeposition = E_RateAlloDeposition;
+    RateAlloDeposition = E_RateAlloDeposition * ActionTemp();
         
     // Surface saine, création par la croissance, destruction par l'infection (intra / extra) et la senescence naturelle
     AreaHealthy = fmax(
@@ -245,11 +255,13 @@ private:
 //@@end:user@@
 
     // Parametres
+    int C_Crop; /**< Paramètre : Type de culture */
     double P_AreaMax; /**< Paramètre : surface potentielle d'une unité, Unité : m^2 */
     double P_UnitTTExp; /**< Paramètre : date de demi-expansion de la surface d'une unité */
     double P_UnitTTSen; /**< Paramètre : date de demi-senescence de la surface d'une unité */
     double P_SlopeExpansion; /**< Paramètre : acceleration de l'expansion de la surface d'une unité */
     double P_SlopeSenescence ; /**< Paramètre : acceleration de la senescence de la surface d'une unité */  
+    double P_Porosity ; /**< Paramètre : Porosité de l'unité fonctionnelle */  
     double E_RateDeseaseTransmission; /**< Paramètre : Vitesse de transmission de la maladie */
     double E_RateAlloDeposition; /**< Paramètre : Modulation du taux d'allodeposition */
     double E_InfectiousPeriod; /**< Paramètre : durée de la période infectieuse */

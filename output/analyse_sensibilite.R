@@ -30,29 +30,34 @@ factors.name <- c(
 	"E_RateAlloDeposition",
 	"E_InitQuantity",
 	"E_LatentPeriod",
-	"P_UnitTTSen"
+	"P_UnitTTSen",
+	"M_TempOpt"
 )
 
 factors.bounds <- data.frame(
 	name = factors.name,
-	def = c(50, 10, 0.5, 0.2, 0.01, 5, 1000),
-	min = c(30, 1, 0.05, 0.05, 0.05, 1, 700),
-	max = c(140, 15, 1, 1, 0.3, 15, 1300)
+	def = c(50, 10, 0.5, 0.2, 0.01, 5, 1000, 25),
+	min = c(30, 1, 0.05, 0.05, 0.05, 1, 700, 15),
+	max = c(140, 15, 1, 1, 0.3, 15, 1300, 30)
 )
 
-factors <- factors.name[1:7]
-bounds <- factors.bounds[1:7,]
+factors <- factors.name[1:8]
+bounds <- factors.bounds[1:8,]
 
 
 # Construire le plan
 # plan complet : f.plan <- expand.grid(va, vb)
 f.as <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K=6)
-f.as <- getPlanFast(factors, bounds, n=300)
+f.as <- getPlanFast(factors, bounds, n=100)
 f.as <- getPlanSobol(factors, bounds, n=300)
 f.plan <- getPlanLHS(factors, bounds, n=1000)
 
 # Mise en place dans VLE
-f <- rvle.open("1D_0.7.vpz", "archidemio")
+f <- rvle.open("1D_0.8.vpz", "archidemio")
+
+# changer le plugin de sortie (vueDebug : 12 variables d'état, vueSensitivity : 1 variable d'état)
+rvle.setOutputPlugin(f, "vueSensitivity", "storage")
+rvle.setOutputPlugin(f, "vueDebug", "dummy")
 
 rvle.addPlanCondition(f, "condParametres", plan=f.as$X, factors=factors)
 #rvle.setTotalCombination(f,1,1) 	# Complet
@@ -234,17 +239,62 @@ anova(f.m)
 
 ### Analyse de sensibilité sur modèle 2D
 f <- rvle.open("2D_0.7.vpz", "archidemio")
-rvle.setTranslator(f, condition="condParametres", class="Unit", n=100, init=3)
+#rvle.setTranslator(f, condition="condParametres", class="Unit", n=100, init=3)
 
 f.as <- getPlanFast(factors, bounds, n=100)
 rvle.addPlanCondition(f, condition="condParametres", plan=f.as$X, factors=factors)
 rvle.setLinearCombination(f,1,1) 
+# rvle.save(f, "plan.vpz") 
 
 # ~ 14 min pour 700 simulations de 100 modèles (0.8 sim/s)
 system.time(d <- rvle.runManagerThread(f,2))
 f.out <- compute.output(plan=f.as$X, data=d, type="2D")
 
 tell(f.as, f.out$y)
+plot.fast(f.as)
+
+
+## Visualisation simulations individuelles
+d.long <- lapply(d, melt, id="time")
+
+# pas d'unité : évolutions somme(score) = f(t)
+out <- NULL
+for (i in 1:length(d)) {
+	tmp <- data.frame(
+		simulation = i,
+		time = 1:(rvle.getDuration(f) + 1),
+		score = aggregate(value ~ time, data=d.long[[i]], sum)$value
+	)
+	out <- rbind(out, tmp)
+}
+trellis.par.set(canonical.theme(color = FALSE))
+xyplot(score ~ time, group=simulation, data=out, type="l", lty=1, alpha=0.05)
+
+
+# pas de temps : grille, image fin épidémie
+out <- NULL
+for (i in 1:length(d)) {
+	tmp <- data.frame(
+		simulation = i,
+		unit = 1:n,	
+		x = rep(1:sqrt(n),sqrt(n)),
+		y = rep(1:sqrt(n), each=sqrt(n)),
+		score = aggregate(value ~ variable, data=d.long[[i]], max)$value
+	)
+	out <- rbind(out, tmp)
+}
+
+score <- ggplot(data=f.out, aes(x=1:dim(f.out)[1], y=y))
+score.gfx <- score + geom_line() +
+	theme_bw() + ylab("Sum of diseased area") + xlab("Simulation #")
+
+Cairo(file="sensitivity_2D.pdf", width = 20, height = 20, units="in", type="pdf", pointsize=10) 
+grids <- ggplot(data=out[out$simulation %in% 1:100==T,], aes(x, y, z = score))
+grids.gfx <- grids + geom_tile(aes(fill = score)) +
+	scale_fill_gradient(low="white", high="black") +
+	facet_wrap(~ simulation) +
+	scale_y_reverse() + opts(aspect.ratio = 1) + theme_bw()
+dev.off()
 
 
 
@@ -255,10 +305,10 @@ index <- rbind(
 	cbind(type="2D", plot.fast(f.as.2D, gfx=F)[,2:4])
 )
 
-Cairo(file="sensitivity.pdf", width = 12, height = 6, units="in", type="pdf", pointsize=10) 
+Cairo(file="sensitivity.pdf", width = 6, height = 8, units="in", type="pdf", pointsize=10) 
 trellis.par.set(canonical.theme(color = FALSE))
 dotplot(labels ~ first + total | type, data=index, auto.key=list(space="bottom"), 
-	xlab="Sensitivity indexes", scales="free", layout=c(2,1)
+	xlab="Sensitivity indexes", scales="free", layout=c(1,2), xlim=c(0,1)
 )	
 dev.off()
 

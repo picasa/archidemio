@@ -354,39 +354,39 @@ public:
 	
 	void etape1()
 	{		
-		// Creation des modèles           
+	// Creation des modèles           
         vle::translator::GraphTranslator tr (*this);
         tr.translate(*mParameter);
 		
-		// Boucle pour creer les connexions 
-		mNumber = mParameter->getInt("number");
-		mPrefix = mParameter->getString("prefix");
+	// Boucle pour creer les connexions 
+	mNumber = mParameter->getInt("number");
+	mPrefix = mParameter->getString("prefix");
 		
         // Initiation sur certains noeuds selon condition E_InitSpace (tuple)       
         std::vector < unsigned int >::const_iterator it;
-		for (it = E_InitSpace.begin(); it != E_InitSpace.end(); ++it) {
-			addConnection("Initiation", "InitQuantity", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
-		}
+	    for (it = E_InitSpace.begin(); it != E_InitSpace.end(); ++it) {
+		addConnection("Initiation", "InitQuantity", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
+	    }
 		
         // Ajout des connexions modèles DE -> EXE
-		for (int i = 0; i!=mNumber; i++) {
-			const std::string current = (vle::fmt("%1%-%2%") % mPrefix % i).str();
-			
-			addConnection("CropClimate", "ActionTemp", current, "ActionTemp");
-			addConnection("CropPhenology", "TempEff", current, "TempEff");
-			addConnection("CropPhenology", "ThermalTime", current, "ThermalTime");
-			
-			// Creation des connexions avec Buffer -> modèles EXE 
-	        addConnection("Buffer", "ThermalTime", current, "ThermalTime");
-	        addConnection("Buffer", "ActionTemp", current, "ActionTemp");
-	        addConnection("Buffer", "TempEff", current, "TempEff");
-	        	
-			// Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
-			addInputPort("CropScaling", (vle::fmt("%1%_AreaActive") % current).str());            
-			
-			// Creation des connexions sortantes
-			addConnection(current, "AreaActive", "CropScaling", (vle::fmt("%1%_AreaActive") % current).str());
-		}		
+	for (int i = 0; i!=mNumber; i++) {
+	    const std::string current = (vle::fmt("%1%-%2%") % mPrefix % i).str();
+	    
+	    addConnection("CropClimate", "ActionTemp", current, "ActionTemp");
+	    addConnection("CropPhenology", "TempEff", current, "TempEff");
+	    addConnection("CropPhenology", "ThermalTime", current, "ThermalTime");
+		
+	    // Creation des connexions avec Buffer -> modèles EXE 
+	    addConnection("Buffer", "ThermalTime", current, "ThermalTime");
+	    addConnection("Buffer", "ActionTemp", current, "ActionTemp");
+	    addConnection("Buffer", "TempEff", current, "TempEff");
+		
+	    // Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
+	    addInputPort("CropScaling", (vle::fmt("%1%_AreaActive") % current).str());            
+	    
+	    // Creation des connexions sortantes
+	    addConnection(current, "AreaActive", "CropScaling", (vle::fmt("%1%_AreaActive") % current).str());
+	}		
 
  	}
 

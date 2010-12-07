@@ -145,7 +145,7 @@ public:
         return false;
     }
 
-    // Création de modèle atomique
+    // Création de l'événement pour creer un modèle atomique
     void add(const vd::Time& /* time */,
              vd::ExternalEventList& output) const
     { 

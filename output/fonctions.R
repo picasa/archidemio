@@ -6,40 +6,58 @@ library(rvle)
 #### Extensions à Rvle, mise en forme ####
 ## rvle.sim() : simuler et indexer les données produites par un modèle VLE
 rvle.sim <- function (
-	self,			# pointeur vers le modèle VLE
+	object,			# pointeur vers le modèle VLE
 	index = c("time","Top.model.Crop.CropPhenology.ThermalTime"),	# variables d'index temporels
 	nVarNormal = 2, # variables non Executive (sans les index de temps)
 	nVarExec = 11,	# variables observées par modèle Executive
 	nExec = 25,		# nombre de modèles créés par Executive
-	resume = F		# résume les sorties pour effectuer une analyse de sensibilité
+	resume = FALSE,		# résume les sorties pour effectuer une analyse de sensibilité
+	view = "debug"
 	) {
 	# durée de la simulation, attention que des variables soient bien observées sur cette durée 
-	simLength=(rvle.getDuration(self) + 1)
+	simLength=(rvle.getDuration(object) + 1)
 	# 1 seule simulation  
-	sim <- rvle.run(self)
+	sim <- rvle.run(object)
 	sim <- as.data.frame(sim)
 	# remplacer le code de date pour time
 	sim$time <- 1:simLength
 	# passage au format "long" : index = time & ThermalTime
-	m <- melt(sim, id=index) 
-	# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-	# TODO : en fonction du nom de colonne
-	unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
-	scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
-	# Tout rassembler dans un dataframe
-	d <- data.frame(
-		time=m$time,
-		ThermalTime=m$Top.model.Crop.CropPhenology.ThermalTime, 
-		scale=as.factor(scale), 
-		variable=sub(".*\\.","", m$variable), 
-		unit=as.factor(unit), 
-		value=m$value
-	)
+	
+	if (view=="debug") {
+		m <- melt(sim, id=index) 
+		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
+		# TODO : en fonction du nom de colonne
+		unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
+		scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
+		# Tout rassembler dans un dataframe
+		d <- data.frame(
+			time=m$time,
+			ThermalTime=m$Top.model.Crop.CropPhenology.ThermalTime, 
+			scale=as.factor(scale), 
+			variable=sub(".*\\.","", m$variable), 
+			unit=as.factor(unit), 
+			value=m$value
+		)
+	}
+	
+	if (view=="sensitivity") {
+		m <- melt(sim, id=index) 
+		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
+		# TODO : en fonction du nom de colonne
+		unit <- c(rep(rep(1:nExec, each=simLength), each=nVarExec)) 
+		# Tout rassembler dans un dataframe
+		d <- data.frame(
+			time=m$time,
+			variable=sub(".*\\.","", m$variable), 
+			unit=as.factor(unit), 
+			value=m$value
+		)	
+	}
 	
 	# Fonction de post-traitement pour résumer les sorties
-	if (resume == T) {
+	if (resume == TRUE) {
 		# somme de la colonne value
-		r <-  sum(d$value, na.rm=T)
+		r <-  sum(d$value, na.rm=TRUE)
 		return(r)
 	} else return(d)
 }
@@ -96,26 +114,48 @@ rvle.getAllConditionPortValues <- function(self, condition) {
 ## rvle.setTranslator() : attribue des conditions pour l'extension GraphTranslator à un objet VLE
 ## graphe : matrice de n noeuds à 4 voisins
 
-rvle.setTranslator <- function (object, condition, class, n=100, init=3) {
+rvle.setTranslator <- function (
+	object, condition, class, n, init, type="lattice", 
+	neighbour=matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE) # 4 voisins
+	) {
 
-	# Construction du graphe (matrice d'adjacence)
-	G <- graph.lattice(c(sqrt(n),sqrt(n)))
-	M <- get.adjacency(G)
-	rownames(M)<-c(1:n)-1
-	colnames(M)<-c(1:n)-1
+	## Construction de la matrice d'adjacence (A)
+	# Grille 4 voisins, dirigé
+	if (type=="lattice") {
+		G <- graph.lattice(c(sqrt(n),sqrt(n)), directed=T, mutual=T)
+		A <- get.adjacency(G)
+
+	}
 	
-	## Condition GraphTranslator
+	# Graphe complet
+	if (type=="full") {
+		G <- graph.full(n, directed = F, loops = F)
+		A <- get.adjacency(G)
+
+	}	
+	
+	# Grille selon un voisinage (emission) défini.
+	if (type=="custom") {
+		A = voisinage(neighbour, nbcolonne=sqrt(n), nbligne=sqrt(n))
+	}
+		
+	rownames(A)<-c(1:n)-1
+	colnames(A)<-c(1:n)-1
+	
+	
+	## Mise en place des conditions de GraphTranslator
 	# n : nombre de noeuds (modèles) du graphe	
 	rvle.setIntegerCondition(object, condition, "E_GridNumber", n)
 	# Vecteur (string) : modèles à instancier à chaque noeud
 	rvle.setStringCondition(object, condition, "E_GridClasses", paste(rep(class,n), collapse=" "))
 	# Vecteur (string) : Matrice d'adjacence 
-	rvle.setStringCondition(object, condition, "E_GridMatrix", paste(as.vector(M), collapse=" "))
+	rvle.setStringCondition(object, condition, "E_GridMatrix", paste(as.vector(A), collapse=" "))
 	# Tuple : noeuds d'infection, tirage uniforme dans 1:n
 	rvle.setTupleCondition(object, condition, "E_InitSpace", round(runif(init,1,n)))
+	#rvle.setTupleCondition(object, condition, "E_InitSpace", init)
 	
 	# Sortie
-	#return(M)
+	return(A)
 }
  
 
@@ -210,6 +250,7 @@ rvle.addPlanCondition <- function(self, condition, plan=f.plan, factors) {
 
 ## compute.output : Résumer les sorties brutes du modèle (d.raw) en une variable d'interet
 # pour l'analyse de sensibilité : pour modèle 1D & 2D
+# TODO : une seule méthode selon le type de modèle (plus de particularité pour graphe dynamique)
 compute.output <- function (plan, data, type="1D") {
 	
 	if (type == "1D") {
@@ -315,14 +356,74 @@ plot.sobol <- function (x, factors, gfx = TRUE) {
 
 
 
+
+
+##### Fonctions de construction de matrices d'adjacence et de graphes #####
+#### R. Faivre 10/2010
+
+voisinage= function( X = matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE), nbligne = 10, nbcolonne = 10, verbose = FALSE) {
+	# X = matrice à 2 colonnes caractérisant les connexions
+	# nbligne  = nombre de lignes du réseau
+	# nbcolonne = nombre de colonnes du réseau
+	nbl.expand = nbligne+diff(range(X[,2]))
+	nbc.expand = nbcolonne+diff(range(X[,1]))
+	dim.max = nbc.expand * nbl.expand
+	vecteur = rep(0, dim.max)
+	decal.col = - min(X[,1]) + 1
+	decal.lig = + max(X[,2]) + 1
+	Xb = X
+	Xb[,1] = Xb[,1] + decal.col
+	Xb[,2] = - Xb[,2] + decal.lig
+	decalage = c(decal.col, decal.lig)
+	suite = (Xb[,2] - 1)* nbc.expand  + Xb[,1] 
+	# récupération des seuls points valides
+	vecteur[suite] = 1
+	# matrice des connexions 
+	connexion = list()
+	connexion[[1]] = NULL
+	
+	for(i in 2:dim.max)  connexion[[i]] = rep(0,length=i-1)
+	connexion = t(sapply(connexion,function(v) c(v,vecteur)[1:dim.max]))
+	
+	##on attaque par la première ligne
+	#for(i in 2:nbcolonne)  connexion[[i]] = rep(0,length=i-1)
+	#connexion = t(sapply(connexion,function(v) c(v,vecteur)[1:(nbl.expand*nbcolonne)]))
+	##on fait les suivantes (nbligne)
+	#ajout = NULL
+	#for(j in 2:nbligne) {
+	#connexplus = cbind( matrix(0, nrow=nbcolonne,ncol= (j-1)*nbc.expand),connexion)[,1:(nbl.expand*nbcolonne)]
+	#ajout = rbind(ajout, connexplus)
+	#}
+	#connexion = rbind(connexion,ajout)
+	
+	points.ext = matrix(rep(FALSE, length= dim.max), ncol = nbl.expand)
+	points.ext[ seq(decalage[2],length=nbcolonne) , seq(decalage[1],length=nbligne)] = TRUE
+	points.ext = c(points.ext)
+	
+	points.valide = matrix(rep(FALSE, length= dim.max), ncol = nbl.expand)
+	points.valide[ seq(1,length=nbcolonne) , seq(1,length=nbligne)] = TRUE
+	points.valide = c(points.valide)
+	
+	# attention on travaille sur la matrice transposée pour conserver l'ordre par colonne
+	valide = t(matrix(vecteur,ncol = nbl.expand)[ seq(decalage[2],length=nbcolonne) , seq(decalage[1],length=nbligne)])
+	#print(valide)
+	#[points.ext,points.ext]
+	if(verbose) 
+		list(valide = c(valide),  connexion = connexion[points.valide,points.ext], points.ext = points.ext, points.valide = points.valide, vecteur = vecteur, voisins = X, nbligne = nbligne, nbcolonne = nbcolonne, Xb=Xb, suite=suite, nbl.expand = nbl.expand, nbc.expand = nbc.expand, decalage=decalage, dim.max=dim.max)
+	else
+		connexion[points.valide,points.ext]
+}
+
+
+
 #### Fonction de qualité de prédiction ####
 # Calculer r² entre observé et simulé
 rsq<-function (sim, obs, digits=2) {
-  round(cor(sim, obs)^2, digits=digits)
+	round(cor(sim, obs)^2, digits=digits)
 }
 # Calculer un biais
 biais<-function (sim, obs, digits=2) {
-  round(mean(sim - obs), digits=digits)
+	round(mean(sim - obs), digits=digits)
 }
 # Calculer RMSE
 rmse<- function(sim, obs, digits=2) {
@@ -330,6 +431,6 @@ rmse<- function(sim, obs, digits=2) {
 }
 # Calculer l'Efficience du modèle
 efficience<- function (sim, obs, digits=2) {
-  round(1 - (sum((sim - obs)^2)/sum((obs - mean(obs))^2)), digits=digits)
+	round(1 - (sum((sim - obs)^2)/sum((obs - mean(obs))^2)), digits=digits)
 }
 

@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="466" height="596"  >
+<model name="Top model" type="coupled" x="0" y="0" width="1008" height="487"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -293,6 +293,9 @@
  <port name="P_AreaMax" >
 <double>1.000000000000000</double>
 </port>
+ <port name="P_Porosity" >
+<double>0.900000000000000</double>
+</port>
  <port name="P_SlopeExpansion" >
 <double>0.020000000000000</double>
 </port>
@@ -378,13 +381,9 @@
 </observable>
 
 <observable name="obsUnit" >
-<port name="AreaActive" >
- <attachedview name="vueDebug" />
-</port>
+<port name="AreaActive" />
 
-<port name="AreaDeseased" >
- <attachedview name="vueDebug" />
-</port>
+<port name="AreaDeseased" />
 
 <port name="AreaExpansion" />
 
@@ -414,6 +413,14 @@
 
 <port name="InitQuantity" />
 
+<port name="OutDeposition" >
+ <attachedview name="vueDebug" />
+</port>
+
+<port name="RateAlloDeposition" >
+ <attachedview name="vueDebug" />
+</port>
+
 <port name="RateAreaExpansion" >
  <attachedview name="vueDebug" />
 </port>
@@ -422,7 +429,9 @@
  <attachedview name="vueDebug" />
 </port>
 
-<port name="RateDeseaseTransmission" />
+<port name="RateDeseaseTransmission" >
+ <attachedview name="vueDebug" />
+</port>
 
 <port name="Receptivity" >
  <attachedview name="vueDebug" />
@@ -433,9 +442,7 @@
  <attachedview name="vueSensitivity" />
 </port>
 
-<port name="ThermalAge" >
- <attachedview name="vueDebug" />
-</port>
+<port name="ThermalAge" />
 
 </observable>
 

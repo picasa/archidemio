@@ -18,20 +18,28 @@ ObsTime = c(30, 60, 90, 120, 150)
 
 ##### Analyse et graphiques des sorties  modèle 1D #####
 ### Simulation
-f <- rvle.open("1D_0.7.vpz", "archidemio")
-sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=13)
+# vle -m -l -o 2 -P archidemio plan7000.vpz
+f <- rvle.open("1D_0.8.vpz", "archidemio")
+
+# changer le plugin de sortie (vueDebug : 12 variables d'état, vueSensitivity : 1 variable d'état)
+rvle.setOutputPlugin(f, "vueSensitivity", "dummy")
+rvle.setOutputPlugin(f, "vueDebug", "storage")
+
+sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
 
 #### Graphiques
 ### Dynamiques des variables f(temps)
 # Variables "culture"
-#xyplot(value ~ time | variable, data=sim.l, scale="free", subset=scale=="crop", type="l")
+xyplot(value ~ time | variable, data=sim.l, scale="free", subset=scale=="crop", type="l")
+
 c <- sim.l[sim.l$scale=="crop",]
 crop <- ggplot(c, aes(time, value))
 crop.gfx <- crop + geom_line() + facet_wrap(~ variable, scales="free", ncol=2) + theme_bw()
 
 
 # Variables "unite"
-#xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l")
+xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l")
+
 #Seulement les variables HLIR
 d <- drop.levels(sim.l[sim.l$variable %in% HLIR==T,])
 d$variable <- factor(d$variable, levels=HLIR)
@@ -64,7 +72,6 @@ col.hist <- c("darkgreen","orange","red","gray")
 trellis.par.set(superpose.symbol=list(col=col.hist))
 dotplot(unit ~ value | time, group=variable, data=p, auto.key=list(space="right"), type="l")
 
-barchart(unit ~ value | time, group=variable, data=p, auto.key=list(space="right"))
 
 # Profils de surface malade (%)
 rd <-  sim.l[(sim.l$variable=="ScoreArea" & sim.l$time %in% ObsTime==T),]
@@ -120,7 +127,7 @@ ggplot(h, aes(variable, value)) +
 
 
 
-### Cinétiques de progression de la maladie
+### Dynamique de progression de la maladie
 # TODO : ggplot ne gère pas les NA ?, soit résoudre, soit commencer plus tard.
 # Données
 sim.l <- rvle.sim()
@@ -143,48 +150,88 @@ for (i in seq(5,SimLength, by=5)) {
 
 
 #### Analyse et graphiques des sorties  modèle 2D ####
-f <- rvle.open("2D_0.7.vpz", "archidemio")
+f <- rvle.open("2D_0.8.vpz", "archidemio")
+n=400 # sqrt(n) doit être entier
 
-rvle.setTranslator(f, condition="condParametres", class="Unit", n=100, init=3)
+A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="lattice")
 
-## Simulation (97s pour 20x20 (n=400))
+X <- matrix(c(0,1, 0,-1, 1,0, -1,0), ncol=2, byrow=T) # 4 voisins
+X <- matrix(c(1,0, 1,-1, 0,-1, -1,-1, -1,0, -1,1, 0,1, 1,1), ncol=2,byrow=TRUE) # 8 Voisins
+A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="custom", neighbour=X)
+#rvle.save(f, "output.vpz")
+
+## Simulation (97s pour 20x20 (n=400), 200s pour n=2500)
 #sim <- rvle.run(f)
-system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=10))
+system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=12, view="debug")) # ! si n > 400
+system.time(sim.l<-rvle.sim(f, nExec=n, nVarExec=1, index="time", view="sensitivity"))
 
-## Mise en forme des sortie : table 3D  {x, y, valeur de sortie}
-# Sur le cycle
+
+## Variables d'états "culture"
+c <- sim.l[sim.l$scale=="crop",]
+crop <- ggplot(c, aes(time, value))
+crop.gfx <- crop + geom_line() + facet_wrap(~ variable, scales="free", ncol=2) + theme_bw()
+
+## Variables d'états "unité"
+trellis.par.set(canonical.theme(color = FALSE))
+xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l", alpha=0.05, lty=1)
+
+
+## Progression de la maladie dans le temps
+p <- ggplot(data=aggregate(value ~ time, data=sim.l, sum, subset=sim.l$variable=="ScoreArea"), aes(x=time, y=value))
+p.gfx <- p + geom_line() + theme_bw() + ylab("Sum of diseased area")
+
+## Cartographie maladie : Mise en forme des sortie : table 3D  {x, y, valeur de sortie}
+# Intégration sur le cycle
 m.i <- aggregate(value ~ unit, data=sim.l, sum, subset=sim.l$variable=="AreaInfectious")
 m.i <- data.frame(
-	x = rep(sqrt(n):1,sqrt(n)),
-	y = rep(1:sqrt(n), each=sqrt(n)),
+	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
 	score = m.i$value
 )
 # Valeur finale
 m.s <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")
 m.s <- data.frame(
-	x = rep(sqrt(n):1,sqrt(n)),
-	y = rep(1:sqrt(n), each=sqrt(n)),
+	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
 	score = m.s$value
 )
 
+# Dynamique (~ 1s/j)
+for (t in 1:150) {
+	# Données
+	m.d <- expand.grid(x=1:sqrt(n), y=1:sqrt(n))
+	m.d$score <- sim.l[(sim.l$variable=="ScoreArea"& sim.l$time==t),]$value
+	
+	# Graphe
+	v <- ggplot(data=m.d, aes(x, y, z = score))
+	grid.d <- v + geom_tile(aes(fill = score)) +
+		scale_fill_gradient(low="white", high="black") +
+		scale_y_reverse() + opts(aspect.ratio = 1) + theme_bw()
+		
+	# Fichier	
+	png(file=paste("dynamic/grid",t,".png", sep=""), width=6, height=6, units="in", res=200, pointsize = 10)
+	print(grid.d)
+	dev.off()
+}
 
+
+ObsTime = c(30, 60, 90, 120, 150)
+ObsTime = c(60, 62, 64, 68, 70)
 # intégration à différents pas de temps
 m.t <- NULL
 for (t in ObsTime) {
 	d <- sim.l[(sim.l$variable=="AreaInfectious" & sim.l$time <= t ),]
 	tmp <- data.frame(
 		time = as.factor(t),
-		x = rep(sqrt(n):1,sqrt(n)),
+		x = rep(1:sqrt(n),sqrt(n)),
 		y = rep(1:sqrt(n), each=sqrt(n)),
 		score = aggregate(value ~ unit, data=d, sum)$value
 	)
 	m.t <- rbind(m.t,tmp)
 }
 # instantanés à différents pas de temps 
-tmp <- sim.l[(sim.l$variable=="AreaInfectious"& sim.l$time %in% ObsTime==T),]
+tmp <- sim.l[(sim.l$variable=="ScoreArea"& sim.l$time %in% ObsTime==T),]
 m.s <- data.frame(
 	time = tmp$time,
-	x = rep(rep(sqrt(n):1,sqrt(n)), each=length(ObsTime)),
+	x = rep(rep(1:sqrt(n),sqrt(n)), each=length(ObsTime)),
 	y = rep(rep(1:sqrt(n), each=sqrt(n)), each=length(ObsTime)),
 	score = tmp$value
 
@@ -194,7 +241,7 @@ m.s <- data.frame(
 # intégration
 v <- ggplot(data=m.s, aes(x, y, z = score))
 grid.s <- v + geom_tile(aes(fill = score)) +
-	stat_contour(bins = sqrt(n)/2) +
+	stat_contour(bins = sqrt(n)/10) +
 	scale_fill_gradient(low="white", high="black") +
 	scale_y_reverse() + opts(aspect.ratio = 1) + theme_bw()
 
@@ -236,16 +283,6 @@ dev.off()
 
 
 
-
-
-
-
-
-
-
-
-
-
 #### DEBUG ####
 
 ### Patrak Super Object Oriented Framework
@@ -260,6 +297,9 @@ f <- rvle.open("1D_0.7.vpz", "archidemio")
 
 rvle.setRealCondition(f, "condParametres", "E_InitQuantity", 0.01)
 rvle.setRealCondition(f, "condParametres", "E_InfectiousPeriod", 5)
+rvle.setRealCondition(f, "condParametres", "E_RateAlloDeposition", 0.6)
+
+rvle.setRealCondition(f, "condParametres", "P_AreaMax", 2.0)
 # rvle.getAllConditionPortValues(f, "condParametres")
 
 sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
@@ -311,8 +351,8 @@ plot(x$value)
 na.omit(x[x$value > 0.01,])
 na.omit(x[x$value < 0,])
 
-
-xyplot(sim.l[sim.l$variable=="Receptivity","value"] ~ sim.l[sim.l$variable=="ThermalAge","value"])
+# Fonction de réceptivité
+xyplot(sim.l[sim.l$variable=="Receptivity","value"] ~ sim.l[sim.l$variable=="ThermalAge","value"], type="l")
 
 
 

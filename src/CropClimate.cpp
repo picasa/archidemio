@@ -52,7 +52,14 @@ namespace Crop {
     	    virtual void compute(const vle::devs::Time& /*time*/)
 	    {
 		//std::cout << "CropClimate compute begin" << std::endl;
-		ActionTemp = 1 - (0.0022 * pow((TempMean() - M_TempOpt),2));
+		
+		/* Effet de la température (locale ou globale) sur la dispersion
+		 * ActionTemp <- function (T, a){pmax(1 - (0.0022 * (T - a)^2),0)}
+		 */		  
+		ActionTemp = fmax(1 - (0.0022 * pow((TempMean() - M_TempOpt),2)),0);
+		
+		/* Effet de la l'hygrométrie (locale ou globale) sur la dispersion
+		 */ 
 		ActionRH = 0.0;
 	    }
 
