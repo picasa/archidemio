@@ -44,7 +44,7 @@ namespace Crop {
 		TempMax = createSync("TempMax");
 
 		// Lecture des parametres
-		P_TempBase = vle::value::toDouble(events.get("P_TempBase"));
+		P_TempBase = events.getDouble("P_TempBase");
 	    }
 
 

@@ -11,7 +11,7 @@ rvle.sim <- function (
 	nVarNormal = 2, # variables non Executive (sans les index de temps)
 	nVarExec = 11,	# variables observées par modèle Executive
 	nExec = 25,		# nombre de modèles créés par Executive
-	resume = FALSE,		# résume les sorties pour effectuer une analyse de sensibilité
+	resume = FALSE,	# résume les sorties pour effectuer une analyse de sensibilité
 	view = "debug"
 	) {
 	# durée de la simulation, attention que des variables soient bien observées sur cette durée 
@@ -68,7 +68,8 @@ rvle.shape <- function (
 	index = c("time","Top.model.Crop.CropPhenology.ThermalTime"),	# variables d'index temporels
 	nVarNormal = 2, # variables non Executive (sans les index de temps)
 	nVarExec = 12,	# variables observées par modèle Executive
-	nExec = 25		# nombre de modèles créés par Executive
+	nExec = 25,		# nombre de modèles créés par Executive
+	view = "debug"
 	) {
 	# durée de la simulation, attention que des variables soient bien observées sur cette durée 
 	simLength=rvle.getDuration(object@sim) + 1
@@ -76,21 +77,39 @@ rvle.shape <- function (
 	sim <- as.data.frame(object@outlist)
 	# remplacer le code de date pour time
 	sim$time <- 1:simLength
+	
 	# passage au format "long" : index = time & ThermalTime
-	m <- melt(sim, id=index) 
-	# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-	# TODO : en fonction du nom de colonne
-	unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
-	scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
-	# Tout rassembler dans un dataframe
-	d <- data.frame(
-		time=m$time,
-		ThermalTime=m$Top.model.Crop.CropPhenology.ThermalTime, 
-		scale=as.factor(scale), 
-		variable=sub(".*\\.","", m$variable), 
-		unit=as.factor(unit), 
-		value=m$value
-	)
+	if (view=="debug") {
+		m <- melt(sim, id=index) 
+		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
+		# TODO : en fonction du nom de colonne
+		unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
+		scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
+		# Tout rassembler dans un dataframe
+		d <- data.frame(
+			time=m$time,
+			ThermalTime=m$Top.model.Crop.CropPhenology.ThermalTime, 
+			scale=as.factor(scale), 
+			variable=sub(".*\\.","", m$variable), 
+			unit=as.factor(unit), 
+			value=m$value
+		)
+	}
+	
+	if (view=="sensitivity") {
+		m <- melt(sim, id=index) 
+		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
+		# TODO : en fonction du nom de colonne
+		unit <- c(rep(rep(1:nExec, each=simLength), each=nVarExec)) 
+		# Tout rassembler dans un dataframe
+		d <- data.frame(
+			time=m$time,
+			variable=sub(".*\\.","", m$variable), 
+			unit=as.factor(unit), 
+			value=m$value
+		)	
+	}
+	
 	return(d)
 }
 

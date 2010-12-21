@@ -47,8 +47,8 @@ public:
 	const vd::InitEventList& events) 
 	: vf::Statechart(init, events)
 	{
-	    E_InitTime = std::floor(vv::toDouble(events.get("E_InitTime")));
-	    E_InitQuantity = vv::toDouble(events.get("E_InitQuantity"));
+	    E_InitTime = std::floor(events.getDouble("E_InitTime"));
+	    E_InitQuantity = events.getDouble("E_InitQuantity");
 	    
 	    states(this) << Healthy << Infected;
 	    

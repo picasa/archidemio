@@ -43,50 +43,50 @@ public:
         mIndex = 0;
         ThermalTime0 = 0;
         ThermalTime = 0;
-        P_UnitTTExp = 0;
-        P_UnitTTSen = 0;
-        P_TTReproductive = 0;
+        P_ExpansionTT = 0;
+        P_SenescenceTT = 0;
+        P_ReproductiveTT = 0;
         
-        P_UnitTTExp = vv::toDouble(events.get("P_UnitTTExp"));
-		P_UnitTTSen = vv::toDouble(events.get("P_UnitTTSen"));
-		P_TTReproductive = vv::toDouble(events.get("P_TTReproductive"));
+        P_ExpansionTT = events.getDouble("P_ExpansionTT");
+		P_SenescenceTT = events.getDouble("P_SenescenceTT");
+		P_ReproductiveTT = events.getDouble("P_ReproductiveTT");
         
 
         /* Définition de la liste des conditions gérant l'initiation des unités (GVLE, condition type "Set")
-        const vv::Set& p = toSetValue(events.get("P_UnitTTInit"));
+        const vv::Set& p = toSetValue(events.get("P_InitiationTT"));
 
         for (unsigned int index = 0; index < p.size(); ++index) {
-            P_UnitTTInit.push_back(vv::toDouble(p.get(index)));
+            P_InitiationTT.push_back(vv::toDouble(p.get(index)));
         }*/
         
-        // Tuple pour une liste de dates d'initiation (P_UnitTTInit)
-		const vle::value::TupleValue& p = (vle::value::toTuple(events.get("P_UnitTTInit")));
+        // Tuple pour une liste de dates d'initiation (P_InitiationTT)
+		const vle::value::TupleValue& p = (vle::value::toTuple(events.get("P_InitiationTT")));
 		vle::value::TupleValue::const_iterator it;
 		
 		for (it = p.begin(); it != p.end(); ++it) {
-			P_UnitTTInit.push_back(*it);
+			P_InitiationTT.push_back(*it);
 		}
         
         // Construction dynamique du graphe des unités : autant d'états que la longueur du paramétrage. 
-        for (unsigned int index = 0; index < P_UnitTTInit.size(); ++index) {
+        for (unsigned int index = 0; index < P_InitiationTT.size(); ++index) {
             states(this) << index;
         }
         
-        states(this) << P_UnitTTInit.size();        
+        states(this) << P_InitiationTT.size();        
         
         
         // Transition et actions entre états (unités) 
-        for (unsigned int index = 0; index < P_UnitTTInit.size()-1; ++index) {
+        for (unsigned int index = 0; index < P_InitiationTT.size()-1; ++index) {
             transition(this, index, index+1) << guard(&PiloteFSA::development) 
                                              << send(&PiloteFSA::add);
         }
         
         // Transition at action pour l'état final (.size commence à 0, on parle bien du dernier état)
-        transition(this, P_UnitTTInit.size()-1, P_UnitTTInit.size()-1) << guard(&PiloteFSA::vegetative)
+        transition(this, P_InitiationTT.size()-1, P_InitiationTT.size()-1) << guard(&PiloteFSA::vegetative)
                                                                        << send(&PiloteFSA::add);
                                                                
         // Transition pour l'arret du développement
-        transition(this, P_UnitTTInit.size()-1, P_UnitTTInit.size()) << guard(&PiloteFSA::reproductive);
+        transition(this, P_InitiationTT.size()-1, P_InitiationTT.size()) << guard(&PiloteFSA::reproductive);
                                                                
         // Actions quand on rentre dans les états
         for (unsigned int index = 0; index < p.size(); ++index) {
@@ -111,18 +111,18 @@ public:
     // Condition pour permettre la transition entre état : somme de T° > paramètre
     bool development(const vd::Time& /* time */)
     { 
-        if (mIndex <= P_UnitTTInit.size()) {
-        return ThermalTime-ThermalTime0 > P_UnitTTInit[mIndex-1];
+        if (mIndex <= P_InitiationTT.size()) {
+        return ThermalTime-ThermalTime0 > P_InitiationTT[mIndex-1];
         } else {
-        return ThermalTime-ThermalTime0 > P_UnitTTInit.back();            
+        return ThermalTime-ThermalTime0 > P_InitiationTT.back();            
         }
     }
     
     // Condition pour stopper le developpement : somme de T° > floraison 
     bool flowering(const vd::Time& /* time */)
     { 
-        //if (mIndex > P_UnitTTInit.size()) {
-        return ThermalTime > P_TTReproductive;
+        //if (mIndex > P_InitiationTT.size()) {
+        return ThermalTime > P_ReproductiveTT;
         //} 
         //return false;
     }
@@ -146,13 +146,14 @@ public:
     }
 
     // Création de l'événement pour creer un modèle atomique
+    // Modification des paramètres de phénologie
     void add(const vd::Time& /* time */,
              vd::ExternalEventList& output) const
     { 
       vd::ExternalEvent* ee=new vd::ExternalEvent("add");
       ee << vd::attribute("index", new vv::Integer(mIndex));
-      ee << vd::attribute("P_UnitTTExp", new vv::Double(ThermalTime + P_UnitTTExp));
-      ee << vd::attribute("P_UnitTTSen", new vv::Double(ThermalTime + P_UnitTTSen));
+      ee << vd::attribute("P_ExpansionTT", new vv::Double(ThermalTime + P_ExpansionTT));
+      ee << vd::attribute("P_SenescenceTT", new vv::Double(ThermalTime + P_SenescenceTT));
       output.addEvent(ee);
     }
    
@@ -162,12 +163,12 @@ public:
 
 private:
     unsigned int mIndex;
-    std::vector < unsigned int > P_UnitTTInit;
+    std::vector < unsigned int > P_InitiationTT;
     double ThermalTime0;
     double ThermalTime;
-    double P_UnitTTExp;
-    double P_UnitTTSen;
-    double P_TTReproductive;
+    double P_ExpansionTT;
+    double P_SenescenceTT;
+    double P_ReproductiveTT;
 };
 
 
@@ -182,11 +183,11 @@ public:
               const vle::devs::InitEventList& events) :
 	vle::devs::Dynamics(init, events)
     {
-        prefix = vv::toString(events.get("prefix"));
-        port = vv::toString(events.get("port"));
-        classes = vv::toString(events.get("E_GridClasses"));
-        matrix = vv::toString(events.get("E_GridMatrix"));
-        number = vv::toInteger(events.get("E_GridNumber"));
+        prefix = events.getString("prefix");
+        port = events.getString("port");
+        classes = events.getString("E_GridClasses");
+        matrix = events.getString("E_GridMatrix");
+        number = events.getInt("E_GridNumber");
     }
     
     virtual ~PiloteGraph() { }

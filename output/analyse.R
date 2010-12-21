@@ -152,6 +152,8 @@ for (i in seq(5,SimLength, by=5)) {
 #### Analyse et graphiques des sorties  modèle 2D ####
 f <- rvle.open("2D_0.8.vpz", "archidemio")
 n=400 # sqrt(n) doit être entier
+rvle.setOutputPlugin(f, "vueSensitivity", "storage")
+rvle.setOutputPlugin(f, "vueDebug", "dummy")
 
 A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="lattice")
 
@@ -273,16 +275,11 @@ print(grid.s)
 dev.off()
 
 
-## Visualisation : dynamiques
-#xyplot(value ~ time | variable, groups=unit, data=sim.l,
-#	subset=scale=="unit",
-#	scale="free", type="l", auto.key=list(space="right")
-#)
 
 
 
 
-
+########################################################################
 #### DEBUG ####
 
 ### Patrak Super Object Oriented Framework
@@ -302,6 +299,8 @@ rvle.setRealCondition(f, "condParametres", "E_RateAlloDeposition", 0.6)
 rvle.setRealCondition(f, "condParametres", "P_AreaMax", 2.0)
 # rvle.getAllConditionPortValues(f, "condParametres")
 
+
+### Graphique génériques
 sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
 
 trellis.par.set(
@@ -309,25 +308,16 @@ trellis.par.set(
 	superpose.symbol=list(col=topo.colors(25))
 )
 
-xyplot(value ~ time | variable, data=sim.l, 
-	subset=scale=="crop", scale="free", type="l"
-)
 
 xyplot(value ~ time | variable, groups=unit, data=sim.l, 
 	subset=scale=="unit", scale="free", type="l", col=topo.colors(25),
-	auto.key=list(space="right")
 )
 
-xyplot(value ~ ThermalTime | variable, groups=unit, data=sim.l, 
-	subset=scale=="unit", scale="free", type="l",
-	auto.key=list(space="right")
-)
 
 # Une seule variable
 xyplot(value ~ time, groups=unit, data=sim.l, 
-	subset=variable=="AreaRemovedByDesease",
-	scale="free", type="l", col=topo.colors(25),
-	auto.key=list(space="right")
+	subset=variable=="Elongation",
+	scale="free", type="l", auto.key=list(space="right")
 )
 
 ### Mise en forme sorties numériques
@@ -335,6 +325,7 @@ cast(sim.l, subset=sim.l$variable=="ThermalAge", time ~ unit)
 cast(sim.l, subset=sim.l$variable=="RateAreaSenescence", time ~ unit)
 cast(sim.l, subset=sim.l$variable=="InitQuantity", time ~ unit)
 cast(sim.l, subset=sim.l$variable=="AreaHealthy", time ~ unit)
+cast(sim.l, subset=sim.l$variable=="Elongation", time ~ unit)
 
 
 ### Tests conservation de surface
@@ -351,11 +342,31 @@ plot(x$value)
 na.omit(x[x$value > 0.01,])
 na.omit(x[x$value < 0,])
 
+
+
+########################################################################
+# Etudes variables individuelles, construction du modèle
+f <- rvle.open("1D_0.8.vpz", "archidemio")
+sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
+
 # Fonction de réceptivité
 xyplot(sim.l[sim.l$variable=="Receptivity","value"] ~ sim.l[sim.l$variable=="ThermalAge","value"], type="l")
 
+# Fonction de porosité
+xyplot(sim.l[sim.l$variable=="Porosity","value"] ~ sim.l[sim.l$variable=="ThermalAge","value"], type="l", alpha=0.2, lty=1, col="black")
 
 
+
+########################################################################
+# Essais pour l'estimation de paramètres
+
+f = new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")
+
+
+
+
+
+########################################################################
 ### Bazar
 ## Import
 # strsplit(colnames(sim), "\\.")

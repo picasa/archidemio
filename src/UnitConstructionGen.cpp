@@ -6,6 +6,15 @@
 #include <vle/vpz.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 
+
+
+// #####################################################################
+/* Méthode pour utilisée quand le graphe du modèle est dynamique.
+ * Rôle tampon pour les sorties de modèles existants destinées à un modèle
+ * en cours de création.
+ * 
+ */ 
+
 class ExecutiveFSA : public vle::devs::Executive
 {
 public:
@@ -30,8 +39,8 @@ public:
         mWaiting = getModel().getInputPortNumber() - 1;
         mAddModel = false;
         mNumModel = 1;
-        P_UnitTTExp=0;
-        P_UnitTTSen=0;
+        P_ExpansionTT=0;
+        P_SenescenceTT=0;
         return vle::devs::Time::infinity;
     }
 
@@ -51,7 +60,7 @@ public:
             std::map < std::string, double >::const_iterator it;
             
 			std::string modelName((boost::format("Unit_%1%_AreaActive") % (mNumModel - 1)).str());
-			output.addEvent(buildEventWithAString("addModelCropScaling", "name", modelName));
+			output.addEvent(buildEventWithAString("addModelSumAreaActive", "name", modelName));
             
 			for (it = mBuffer.begin(); it != mBuffer.end(); it++) {
                 vle::devs::ExternalEvent* ee = buildEvent(it->first);
@@ -108,8 +117,8 @@ public:
         for (const_iterator it = event.begin(); it != event.end(); ++it) {
             if ((*it)->onPort("add")) {
 				mAddModel = true;
-                P_UnitTTExp = (*it)->getDoubleAttributeValue("P_UnitTTExp");
-                P_UnitTTSen = (*it)->getDoubleAttributeValue("P_UnitTTSen");
+                P_ExpansionTT = (*it)->getDoubleAttributeValue("P_ExpansionTT");
+                P_SenescenceTT = (*it)->getDoubleAttributeValue("P_SenescenceTT");
 				//TraceModel("mAddModel: add");
             }
         }
@@ -141,10 +150,10 @@ public:
 
 		// Edition de la valeur d'un paramètre variable entre unité
 		vle::vpz::Condition& cnd = conditions().get("condParametres");
-		cnd.clearValueOfPort("P_UnitTTExp");
-		cnd.addValueToPort("P_UnitTTExp", new vle::value::Double(P_UnitTTExp));
-		cnd.clearValueOfPort("P_UnitTTSen");
-		cnd.addValueToPort("P_UnitTTSen", new vle::value::Double(P_UnitTTSen));
+		cnd.clearValueOfPort("P_ExpansionTT");
+		cnd.addValueToPort("P_ExpansionTT", new vle::value::Double(P_ExpansionTT));
+		cnd.clearValueOfPort("P_SenescenceTT");
+		cnd.addValueToPort("P_SenescenceTT", new vle::value::Double(P_SenescenceTT));
 		
 		// Creation des unites fonctionnelles           
 		createModelFromClass("Unit", current); 
@@ -163,10 +172,10 @@ public:
 		addConnection(current, "out", "Buffer", "in");
         		
 		// Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
-		addInputPort("CropScaling", (vle::fmt("%1%_AreaActive") % current).str());            
+		addInputPort("SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());            
 		
 		// Creation des connexions sortantes
-		addConnection(current, "AreaActive", "CropScaling", (vle::fmt("%1%_AreaActive") % current).str());
+		addConnection(current, "AreaActive", "SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());
 		
 		// Suppression des connexions entre modèles EXE n-1 et Buffer
 		if (mNumModel == 1) {
@@ -204,8 +213,8 @@ private:
     int mWaiting;
     bool mAddModel;
     int mNumModel;
-    double P_UnitTTExp;
-    double P_UnitTTSen;
+    double P_ExpansionTT;
+    double P_SenescenceTT;
 };
 
 
@@ -216,6 +225,12 @@ private:
 
 
 
+// #####################################################################
+/* Méthode pour utilisée quand le graphe du modèle n'est pas dynamique :
+ * tout les modèles sont créés au debut de la simulation.
+ * 
+ * 
+ */ 
 
 class ExecutiveGraph : public vle::devs::Executive
 {
@@ -269,7 +284,7 @@ public:
             
 			for (int i = 0; i!=mNumber; i++) {
 				std::string modelName((boost::format("%1%-%2%_AreaActive") % mPrefix % i).str());
-				output.addEvent(buildEventWithAString("addModelCropScaling", "name", modelName));				
+				output.addEvent(buildEventWithAString("addModelSumAreaActive", "name", modelName));				
 			}		
             
             
@@ -382,10 +397,10 @@ public:
 	    addConnection("Buffer", "TempEff", current, "TempEff");
 		
 	    // Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
-	    addInputPort("CropScaling", (vle::fmt("%1%_AreaActive") % current).str());            
+	    addInputPort("SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());            
 	    
 	    // Creation des connexions sortantes
-	    addConnection(current, "AreaActive", "CropScaling", (vle::fmt("%1%_AreaActive") % current).str());
+	    addConnection(current, "AreaActive", "SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());
 	}		
 
  	}

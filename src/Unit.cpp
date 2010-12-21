@@ -35,23 +35,26 @@ class Unit : public ve::DifferenceEquation::Multiple
 public:
     Unit(
        const vd::DynamicsInit& atom,
-       const vd::InitEventList& evts)
-        : ve::DifferenceEquation::Multiple(atom, evts)
+       const vd::InitEventList& events)
+        : ve::DifferenceEquation::Multiple(atom, events)
     {
-        // Parametres
-        C_Crop = vv::toInteger(evts.get("C_Crop"));
-        P_AreaMax = vv::toDouble(evts.get("P_AreaMax"));
-		P_UnitTTExp = vv::toDouble(evts.get("P_UnitTTExp"));
-		P_UnitTTSen = vv::toDouble(evts.get("P_UnitTTSen"));
-		P_SlopeExpansion = vv::toDouble(evts.get("P_SlopeExpansion"));
-		P_SlopeSenescence = vv::toDouble(evts.get("P_SlopeExpansion"));
-        P_Porosity = vv::toDouble(evts.get("P_Porosity"));
-        E_RateDeseaseTransmission = vv::toDouble(evts.get("E_RateDeseaseTransmission"));
-        E_RateAlloDeposition = vv::toDouble(evts.get("E_RateAlloDeposition"));
-        E_InfectiousPeriod = vv::toDouble(evts.get("E_InfectiousPeriod"));
-        E_LatentPeriod = vv::toDouble(evts.get("E_LatentPeriod"));
+        // Parametres 
+        C_Crop = events.getInt("C_Crop");
+        P_AreaMax = events.getDouble("P_AreaMax");
+        P_ExpansionTT = events.getDouble("P_ExpansionTT");
+		P_ExpansionSlope = events.getDouble("P_ExpansionSlope");
+		P_SenescenceTT = events.getDouble("P_SenescenceTT");
+		P_SenescenceSlope = events.getDouble("P_ExpansionSlope");
+        P_ElongationMax = events.getDouble("P_ElongationMax");
+		P_ElongationSlope = events.getDouble("P_ElongationSlope");
+		P_ElongationTT = events.getDouble("P_ElongationTT");
+        P_Porosity = events.getDouble("P_Porosity");
+        E_RateDeseaseTransmission = events.getDouble("E_RateDeseaseTransmission");
+        E_RateAlloDeposition = events.getDouble("E_RateAlloDeposition");
+        E_InfectiousPeriod = events.getDouble("E_InfectiousPeriod");
+        E_LatentPeriod = events.getDouble("E_LatentPeriod");
         
-        // Variables synchrones
+        // Variables d'entrée synchrones/asynchrone
 		TempEff = createSync("TempEff"); 
 		ThermalTime = createSync("ThermalTime"); 
         ActionTemp = createSync("ActionTemp");
@@ -81,6 +84,9 @@ public:
         ThermalAge = createVar("ThermalAge");
         InitQuantity = createVar("InitQuantity");
         CropState = createVar("CropState");
+        Porosity = createVar("Porosity");
+        Elongation = createVar("Elongation");
+        RateElongation = createVar("RateElongation");
     }
 
     virtual ~Unit()
@@ -111,6 +117,14 @@ virtual void compute(const vd::Time& /*time*/)
     // Age thermique de l'unité
     ThermalAge = TempEff() + ThermalAge(-1);
     
+    /* Croissance en hauteur de l'unité
+     * - Cinétique identique à l'expansion foliaire
+     * - Synchrone avec l'expansion (P_ExpansionTT == P_ElongationTT)
+     */ 
+    RateElongation = TempEff() * (P_ElongationMax * P_ElongationSlope) * exp(-P_ElongationSlope * (ThermalAge() - P_ElongationTT)) / pow((1 + exp(-P_ElongationSlope * (ThermalAge() - P_ElongationTT))),2);
+         
+    Elongation = Elongation(-1) + RateElongation();
+    
     /* Receptivité de tissus : Réponse identique pour toute les unités
      * Linéaire decroissant : Receptivity = fmax(- 1/1000 * ThermalAge() +1, 0);
      * Linéaire croissant : Receptivity = fmin(1/1000 * ThermalAge() + 0.2, 1.2);
@@ -133,14 +147,17 @@ virtual void compute(const vd::Time& /*time*/)
      */
     InfectiousPeriod = E_InfectiousPeriod;
     
-    // Vitesse de croissance
-    RateAreaExpansion = TempEff() * (P_AreaMax * P_SlopeExpansion) * exp(-P_SlopeExpansion * (ThermalTime() - P_UnitTTExp)) / pow((1 + exp(-P_SlopeExpansion * (ThermalTime() - P_UnitTTExp))),2);
+    /* Vitesse de croissance
+     * - Si ThermalTime() est utilisé la valeur de P_ExpansionTT doit être recalculée (Pilote.cpp) en temps thermique
+     * - sinon on utilise ThermalAge()
+     */
+    RateAreaExpansion = TempEff() * (P_AreaMax * P_ExpansionSlope) * exp(-P_ExpansionSlope * (ThermalTime() - P_ExpansionTT)) / pow((1 + exp(-P_ExpansionSlope * (ThermalTime() - P_ExpansionTT))),2);
     
     /* Vitesse de senescence : pose un problème pour déterminer l'asymptote
      * (paramètre) alors qu'il depends de l'évolution de la maladie. 
      * Plutôt que de le résoudre analytiquement, on conditionne cette dérivée.  
      */ 
-    double RateAreaSenescence_tmp = TempEff() * (P_AreaMax * P_SlopeSenescence) * exp(-P_SlopeSenescence * (ThermalTime() - P_UnitTTSen)) / pow((1 + exp(-P_SlopeSenescence * (ThermalTime() - P_UnitTTSen))),2);
+    double RateAreaSenescence_tmp = TempEff() * (P_AreaMax * P_SenescenceSlope) * exp(-P_SenescenceSlope * (ThermalTime() - P_SenescenceTT)) / pow((1 + exp(-P_SenescenceSlope * (ThermalTime() - P_SenescenceTT))),2);
     if ((AreaHealthy(-1) <= 0) and (AreaRemoved(-1) > P_AreaMax)) {
         RateAreaSenescence_tmp = 0;
     }
@@ -195,11 +212,19 @@ virtual void compute(const vd::Time& /*time*/)
         +(1/InfectiousPeriod() * AreaInfectious(-1));
         
     // % de Surface détruite par la maladie = note de surface
-    ScoreArea = 
-        AreaRemovedByDesease() / AreaExpansion();
+    ScoreArea = AreaRemovedByDesease() / AreaExpansion();
     
     // Surface active : différence totale - senescence
     AreaActive = fmax(AreaExpansion() - AreaRemoved(),0);
+    
+    /* Porosité : 
+     *  - action sur l'émission de spores
+     *  - fonction de la surface / encombrement dans l'unité
+     *  - bornée à 1
+     *  - plus la pente est faible (P_ElongationSlope), plus la transition poreux -> dense est rapide
+     */ 
+    Porosity = fmin(
+        P_Porosity * AreaActive() / Elongation(),1);
     
     // Surface malade = total des surfaces infectée (L + I + R causé par maladie)
     AreaDeseased =
@@ -211,7 +236,7 @@ virtual void compute(const vd::Time& /*time*/)
      * 1. proportion de la surface infectieuse de l'unité
      * 2. réduite par la porosité de l'unité / couvert
      */
-    OutDeposition = RateAlloDeposition() * AreaInfectious();
+    OutDeposition = RateAlloDeposition() * AreaInfectious() * Porosity();
     
     // Emission, pour être coherent avec la nomenclature In/Out
     Out = OutDeposition();
@@ -232,20 +257,23 @@ virtual void initValue(const vd::Time& /*time*/)
     AreaInfectious = 0.0;
     AreaRemoved = 0.0;
     AreaRemovedByDesease = 0.0;
-    ScoreArea = 0;
+    ScoreArea = 0.0;
     AreaSenescence = 0.0;
     AreaDeseased = 0.0;
     RateDeseaseTransmission = E_RateDeseaseTransmission;    
     RateAlloDeposition = E_RateAlloDeposition;    
     LatentPeriod = E_LatentPeriod;
     InfectiousPeriod = E_InfectiousPeriod;
-    OutDeposition = 0;
-    InDeposition = 0;
-    Out = 0;
+    OutDeposition = 0.0;
+    InDeposition = 0.0;
+    Out = 0.0;
     Receptivity = 0.2;
-    ThermalAge = 0;
-    InitQuantity = 0;
-    CropState = 0;
+    ThermalAge = 0.0;
+    InitQuantity = 0.0;
+    CropState = 0.0;
+    Porosity = 1.0;
+    RateElongation = 0.0;
+    Elongation = 0.001;
     
 }
 //@@end:initValue@@
@@ -257,17 +285,20 @@ private:
     // Parametres
     int C_Crop; /**< Paramètre : Type de culture */
     double P_AreaMax; /**< Paramètre : surface potentielle d'une unité, Unité : m^2 */
-    double P_UnitTTExp; /**< Paramètre : date de demi-expansion de la surface d'une unité */
-    double P_UnitTTSen; /**< Paramètre : date de demi-senescence de la surface d'une unité */
-    double P_SlopeExpansion; /**< Paramètre : acceleration de l'expansion de la surface d'une unité */
-    double P_SlopeSenescence ; /**< Paramètre : acceleration de la senescence de la surface d'une unité */  
+    double P_ExpansionTT; /**< Paramètre : date de demi-expansion de la surface d'une unité */
+    double P_ExpansionSlope; /**< Paramètre : acceleration de l'expansion de la surface d'une unité */    
+    double P_SenescenceTT; /**< Paramètre : date de demi-senescence de la surface d'une unité */
+    double P_SenescenceSlope ; /**< Paramètre : acceleration de la senescence de la surface d'une unité */  
+    double P_ElongationMax; /**< Paramètre : longueur potentielle d'une unité, Unité : m */
+    double P_ElongationSlope ; /**< Paramètre : acceleration de la croissance en hauteur d'une unité */  
+    double P_ElongationTT ; /**< Paramètre : date de demi-elongation d'une unité */  
     double P_Porosity ; /**< Paramètre : Porosité de l'unité fonctionnelle */  
     double E_RateDeseaseTransmission; /**< Paramètre : Vitesse de transmission de la maladie */
     double E_RateAlloDeposition; /**< Paramètre : Modulation du taux d'allodeposition */
     double E_InfectiousPeriod; /**< Paramètre : durée de la période infectieuse */
     double E_LatentPeriod; /**< Paramètre : durée de la période de latence */
     
-    // Entrées
+    // Entrées 
     Sync ActionTemp;
     Sync TempEff;
     Sync ThermalTime;
@@ -292,12 +323,14 @@ private:
     Var InfectiousPeriod;
     Var OutDeposition;
     Var InDeposition;
-    Var Out;
     Var Receptivity;
     Var ThermalAge;
     Var InitQuantity;
     Var CropState;
-    
+    Var Porosity;
+    Var RateElongation;
+    Var Elongation;
+    Var Out;
 };
 
 } // namespace Unit

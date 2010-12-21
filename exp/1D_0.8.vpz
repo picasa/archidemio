@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1008" height="487"  >
+<model name="Top model" type="coupled" x="0" y="0" width="1297" height="596"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="274" y="38" width="100" height="120"  >
+<model name="Crop" type="coupled" x="274" y="38" width="1008" height="525"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -24,7 +24,7 @@
  <port name="TempMin" />
 </in>
 <submodels>
-<model name="Buffer" type="atomic" dynamics="dynUnitConstructionGen" x="532" y="294" width="100" height="105" >
+<model name="Buffer" type="atomic" dynamics="dynUnitConstructionGen" x="532" y="293" width="100" height="105" >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />
@@ -36,7 +36,7 @@
  <port name="ActionTemp" />
  <port name="TempEff" />
  <port name="ThermalTime" />
- <port name="addModelCropScaling" />
+ <port name="addModelSumAreaActive" />
  <port name="out" />
 </out>
 </model>
@@ -50,7 +50,7 @@
  <port name="ActionTemp" />
 </out>
 </model>
-<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynCropLeafArea" observables="obsCropLeafArea" x="757" y="433" width="100" height="45" >
+<model name="CropLeafArea" type="atomic" conditions="condCropLeafArea,condEqDiff,condParametres" dynamics="dynCropLeafArea" observables="obsCropLeafArea" x="792" y="440" width="100" height="45" >
 <in>
  <port name="CropAreaActive" />
 </in>
@@ -69,19 +69,19 @@
  <port name="ThermalTime" />
 </out>
 </model>
-<model name="CropScaling" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynCropScaling" observables="obsCropScaling" x="755" y="340" width="100" height="45" >
-<in>
- <port name="add" />
-</in>
-<out>
- <port name="update" />
-</out>
-</model>
 <model name="CropState" type="atomic" conditions="condEqDiff" dynamics="dynPassive" x="89" y="395" width="100" height="30" >
 </model>
 <model name="Initiation" type="atomic" conditions="condEqDiff,condParametres" dynamics="dynInitiation" x="523" y="114" width="100" height="45" >
 <out>
  <port name="InitQuantity" />
+</out>
+</model>
+<model name="SumAreaActive" type="atomic" conditions="condCropScaling,condEqDiff" dynamics="dynCropScaling" observables="obsCropScaling" x="782" y="339" width="100" height="45" >
+<in>
+ <port name="add" />
+</in>
+<out>
+ <port name="update" />
 </out>
 </model>
 <model name="UnitPilot" type="atomic" conditions="condParametres" dynamics="dynUnitPilot" x="359" y="209" width="100" height="45" >
@@ -112,8 +112,8 @@
  <destination model="CropPhenology" port="TempMin" />
 </connection>
 <connection type="internal">
- <origin model="Buffer" port="addModelCropScaling" />
- <destination model="CropScaling" port="add" />
+ <origin model="Buffer" port="addModelSumAreaActive" />
+ <destination model="SumAreaActive" port="add" />
 </connection>
 <connection type="internal">
  <origin model="CropClimate" port="ActionTemp" />
@@ -136,7 +136,7 @@
  <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
- <origin model="CropScaling" port="update" />
+ <origin model="SumAreaActive" port="update" />
  <destination model="CropLeafArea" port="CropAreaActive" />
 </connection>
 <connection type="internal">
@@ -293,29 +293,38 @@
  <port name="P_AreaMax" >
 <double>1.000000000000000</double>
 </port>
+ <port name="P_ElongationMax" >
+<double>1.000000000000000</double>
+</port>
+ <port name="P_ElongationSlope" >
+<double>0.010000000000000</double>
+</port>
+ <port name="P_ElongationTT" >
+<double>300.000000000000000</double>
+</port>
+ <port name="P_ExpansionSlope" >
+<double>0.010000000000000</double>
+</port>
+ <port name="P_ExpansionTT" >
+<double>300.000000000000000</double>
+</port>
+ <port name="P_InitiationTT" >
+<tuple>70.000000000000000 70.000000000000000 70.000000000000000 50.000000000000000</tuple>
+</port>
  <port name="P_Porosity" >
-<double>0.900000000000000</double>
+<double>1.000000000000000</double>
 </port>
- <port name="P_SlopeExpansion" >
-<double>0.020000000000000</double>
+ <port name="P_ReproductiveTT" >
+<double>1500.000000000000000</double>
 </port>
- <port name="P_SlopeSenescence" >
+ <port name="P_SenescenceSlope" >
 <double>0.030000000000000</double>
 </port>
- <port name="P_TTReproductive" >
-<double>1500.000000000000000</double>
+ <port name="P_SenescenceTT" >
+<double>1000.000000000000000</double>
 </port>
  <port name="P_TempBase" >
 <double>4.000000000000000</double>
-</port>
- <port name="P_UnitTTExp" >
-<double>300.000000000000000</double>
-</port>
- <port name="P_UnitTTInit" >
-<tuple>70.000000000000000 70.000000000000000 70.000000000000000 50.000000000000000</tuple>
-</port>
- <port name="P_UnitTTSen" >
-<double>1000.000000000000000</double>
 </port>
 </condition>
 <condition name="condUnit" >
@@ -381,7 +390,9 @@
 </observable>
 
 <observable name="obsUnit" >
-<port name="AreaActive" />
+<port name="AreaActive" >
+ <attachedview name="vueDebug" />
+</port>
 
 <port name="AreaDeseased" />
 
@@ -407,13 +418,19 @@
 
 <port name="AreaSenescence" />
 
-<port name="InDeposition" >
+<port name="Elongation" >
  <attachedview name="vueDebug" />
 </port>
 
+<port name="InDeposition" />
+
 <port name="InitQuantity" />
 
-<port name="OutDeposition" >
+<port name="Length" />
+
+<port name="OutDeposition" />
+
+<port name="Porosity" >
  <attachedview name="vueDebug" />
 </port>
 
@@ -421,17 +438,15 @@
  <attachedview name="vueDebug" />
 </port>
 
-<port name="RateAreaExpansion" >
- <attachedview name="vueDebug" />
-</port>
+<port name="RateAreaExpansion" />
 
-<port name="RateAreaSenescence" >
- <attachedview name="vueDebug" />
-</port>
+<port name="RateAreaSenescence" />
 
 <port name="RateDeseaseTransmission" >
  <attachedview name="vueDebug" />
 </port>
+
+<port name="RateElongation" />
 
 <port name="Receptivity" >
  <attachedview name="vueDebug" />
@@ -442,7 +457,9 @@
  <attachedview name="vueSensitivity" />
 </port>
 
-<port name="ThermalAge" />
+<port name="ThermalAge" >
+ <attachedview name="vueDebug" />
+</port>
 
 </observable>
 

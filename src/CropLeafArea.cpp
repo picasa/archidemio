@@ -12,10 +12,11 @@ class CropLeafArea : public ve::DifferenceEquation::Multiple
 public:
     CropLeafArea(
        const vd::DynamicsInit& atom,
-       const vd::InitEventList& evts)
-        : ve::DifferenceEquation::Multiple(atom, evts)
+       const vd::InitEventList& events)
+        : ve::DifferenceEquation::Multiple(atom, events)
     {
-        C_Density = vv::toDouble(evts.get("C_Density"));
+        C_Density = events.getDouble("C_Density");
+        
         LAI = createVar("LAI");
         CropAreaActive = createSync("CropAreaActive");
     }
@@ -25,7 +26,7 @@ public:
 
 virtual void compute(const vd::Time& /*time*/)
 {
-    // On utilise directement la surface d'une strate à ce stade, 
+    // On utilise directement la surface d'une unité à ce stade, 
     // il faudra sommer ces valeurs quand il y aura n strates.
     
     // Indice de surface foliaire de la culture
