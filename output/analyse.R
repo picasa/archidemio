@@ -1,5 +1,6 @@
 # Traiter les sorties de VLE pour permettre un debug rapide du modèle.
 
+########################################################################
 ## Bibliotheques & chemins
 library(gdata)
 library(ggplot2)
@@ -15,11 +16,12 @@ ObsTime = c(30, 60, 90, 120, 150)
 
 
 
-
+########################################################################
 ##### Analyse et graphiques des sorties  modèle 1D #####
 ### Simulation
 # vle -m -l -o 2 -P archidemio plan7000.vpz
-f <- rvle.open("1D_0.8.vpz", "archidemio")
+f <- rvle.open("1D_0.8.vpz", "archidemio")					# lien
+f <- new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")	# classe
 
 # changer le plugin de sortie (vueDebug : 12 variables d'état, vueSensitivity : 1 variable d'état)
 rvle.setOutputPlugin(f, "vueSensitivity", "dummy")
@@ -49,6 +51,15 @@ dynamique.gfx <- dynamique +
 	facet_wrap(~ variable, scales="free", ncol=2) +
 	theme_bw() + ylab("% Unit Area")
 
+# Progression globale de la maladie sur la parcelle (Disease Progression Curve)
+# En somme sur les unités
+d <- sim.l[(sim.l$variable=="ScoreArea"),]
+d <- drop.levels(d)
+d <- aggregate(d$value, by=list(time=d$time), sum, na.rm=T)
+
+dpc <- ggplot(d, aes(time, x))
+dpc.gfx <- dpc + geom_line() + theme_bw() + ylab("Sum ScoreArea")
+
 
 ### Profils d'infections
 # 5 date sur le cycle, en jours : TO DO, position relatives dans le cycle
@@ -61,7 +72,7 @@ profils.gfx <- profils +
 	facet_wrap(~ variable, scales="free", ncol=2) +
 	theme_bw() + coord_flip() + scale_colour_grey(start=0.8, end=0.2)
 
-# Histogrammes cumulés
+# Profils superposés | variable
 p <- sim.l[(sim.l$variable %in% HLIR==T & sim.l$time %in% ObsTime==T),]
 p$time <- as.factor(p$time)
 p$unit <- as.numeric(p$unit)
@@ -146,27 +157,35 @@ for (i in seq(5,SimLength, by=5)) {
 
 
 
-
-
-
+########################################################################
 #### Analyse et graphiques des sorties  modèle 2D ####
+f <- new("Rvle", file = "2D_0.8.vpz", pkg = "archidemio")	# classe
+
 f <- rvle.open("2D_0.8.vpz", "archidemio")
-n=400 # sqrt(n) doit être entier
 rvle.setOutputPlugin(f, "vueSensitivity", "storage")
 rvle.setOutputPlugin(f, "vueDebug", "dummy")
 
+## Paramétrage de GraphTranslator (graphe de connection)
+# Nombre de noeuds (n=100 ds le vpz)
+n=100 # sqrt(n) doit être entier
+
+# graphe : grille 4 voisins 
 A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="lattice")
 
+# graphe construit depuis un voisinage (emission) défini dans une matrice (X)
 X <- matrix(c(0,1, 0,-1, 1,0, -1,0), ncol=2, byrow=T) # 4 voisins
 X <- matrix(c(1,0, 1,-1, 0,-1, -1,-1, -1,0, -1,1, 0,1, 1,1), ncol=2,byrow=TRUE) # 8 Voisins
 A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="custom", neighbour=X)
 #rvle.save(f, "output.vpz")
 
 ## Simulation (97s pour 20x20 (n=400), 200s pour n=2500)
-#sim <- rvle.run(f)
+# couche objet (ok pour optimisation)
 system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=12, view="debug")) # ! si n > 400
 system.time(sim.l<-rvle.sim(f, nExec=n, nVarExec=1, index="time", view="sensitivity"))
 
+# couche classique (ok pour exploration)
+sim <- rvle.run(f)
+sim.l<-rvle.shape(sim, view="sensitivity")
 
 ## Variables d'états "culture"
 c <- sim.l[sim.l$scale=="crop",]
@@ -179,8 +198,8 @@ xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", s
 
 
 ## Progression de la maladie dans le temps
-p <- ggplot(data=aggregate(value ~ time, data=sim.l, sum, subset=sim.l$variable=="ScoreArea"), aes(x=time, y=value))
-p.gfx <- p + geom_line() + theme_bw() + ylab("Sum of diseased area")
+dpc <- ggplot(data=aggregate(value ~ time, data=sim.l, mean, subset=sim.l$variable=="ScoreArea"), aes(x=time, y=value))
+dpc.gfx <- dpc + geom_line() + theme_bw() + ylab("Mean diseased area")
 
 ## Cartographie maladie : Mise en forme des sortie : table 3D  {x, y, valeur de sortie}
 # Intégration sur le cycle
@@ -189,7 +208,7 @@ m.i <- data.frame(
 	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
 	score = m.i$value
 )
-# Valeur finale
+# Valeur finale (utiliser vue "finish" si l'on a besoin que de cette variable)
 m.s <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")
 m.s <- data.frame(
 	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
@@ -316,7 +335,7 @@ xyplot(value ~ time | variable, groups=unit, data=sim.l,
 
 # Une seule variable
 xyplot(value ~ time, groups=unit, data=sim.l, 
-	subset=variable=="Elongation",
+	subset=variable=="ScoreArea",
 	scale="free", type="l", auto.key=list(space="right")
 )
 
@@ -326,6 +345,7 @@ cast(sim.l, subset=sim.l$variable=="RateAreaSenescence", time ~ unit)
 cast(sim.l, subset=sim.l$variable=="InitQuantity", time ~ unit)
 cast(sim.l, subset=sim.l$variable=="AreaHealthy", time ~ unit)
 cast(sim.l, subset=sim.l$variable=="Elongation", time ~ unit)
+cast(sim.l, subset=sim.l$variable=="ScoreArea", time ~ unit)
 
 
 ### Tests conservation de surface
@@ -354,13 +374,6 @@ xyplot(sim.l[sim.l$variable=="Receptivity","value"] ~ sim.l[sim.l$variable=="The
 
 # Fonction de porosité
 xyplot(sim.l[sim.l$variable=="Porosity","value"] ~ sim.l[sim.l$variable=="ThermalAge","value"], type="l", alpha=0.2, lty=1, col="black")
-
-
-
-########################################################################
-# Essais pour l'estimation de paramètres
-
-f = new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")
 
 
 

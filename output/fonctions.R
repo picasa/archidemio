@@ -10,23 +10,22 @@ rvle.sim <- function (
 	index = c("time","Top.model.Crop.CropPhenology.ThermalTime"),	# variables d'index temporels
 	nVarNormal = 2, # variables non Executive (sans les index de temps)
 	nVarExec = 11,	# variables observées par modèle Executive
-	nExec = 25,		# nombre de modèles créés par Executive
+	nExec = n,		# nombre de modèles créés par Executive
 	resume = FALSE,	# résume les sorties pour effectuer une analyse de sensibilité
 	view = "debug"
 	) {
 	# durée de la simulation, attention que des variables soient bien observées sur cette durée 
-	simLength=(rvle.getDuration(object) + 1)
-	# 1 seule simulation  
-	sim <- rvle.run(object)
-	sim <- as.data.frame(sim)
+	simLength=rvle.getDuration(object@sim) + 1
+	
+	# 1 seule simulation 
+	object <- run(object)
+	sim <- as.data.frame(object@outlist) 
+	
 	# remplacer le code de date pour time
 	sim$time <- 1:simLength
-	# passage au format "long" : index = time & ThermalTime
 	
 	if (view=="debug") {
 		m <- melt(sim, id=index) 
-		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-		# TODO : en fonction du nom de colonne
 		unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
 		scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
 		# Tout rassembler dans un dataframe
@@ -41,10 +40,8 @@ rvle.sim <- function (
 	}
 	
 	if (view=="sensitivity") {
-		m <- melt(sim, id=index) 
-		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-		# TODO : en fonction du nom de colonne
-		unit <- c(rep(rep(1:nExec, each=simLength), each=nVarExec)) 
+		m <- melt(sim, id="time") 
+		unit <- c(rep(rep(1:nExec, each=simLength), each=1)) 
 		# Tout rassembler dans un dataframe
 		d <- data.frame(
 			time=m$time,
@@ -68,21 +65,31 @@ rvle.shape <- function (
 	index = c("time","Top.model.Crop.CropPhenology.ThermalTime"),	# variables d'index temporels
 	nVarNormal = 2, # variables non Executive (sans les index de temps)
 	nVarExec = 12,	# variables observées par modèle Executive
-	nExec = 25,		# nombre de modèles créés par Executive
-	view = "debug"
+	nExec = n,		# nombre de modèles créés par Executive
+	view = "debug"  # nom de la vue active dans le modèle
 	) {
-	# durée de la simulation, attention que des variables soient bien observées sur cette durée 
-	simLength=rvle.getDuration(object@sim) + 1
-	# dataframe des sorties
-	sim <- as.data.frame(object@outlist)
+	
+	if (class(object)!="list") {
+		# durée de la simulation, attention que des variables soient bien observées sur cette durée 
+		simLength=rvle.getDuration(object@sim) + 1
+		# dataframe des sorties
+		sim <- as.data.frame(object@outlist)
+	} else {
+		# dataframe des sorties (objet directement passé à la fonction)
+		sim <- as.data.frame(object)
+		# durée selon la taille du data.frame()
+		simLength=length(sim$time)
+	}
+	
 	# remplacer le code de date pour time
 	sim$time <- 1:simLength
 	
-	# passage au format "long" : index = time & ThermalTime
+	# passage au format "long" : index = time | ThermalTime
+	# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
+	# [TODO] : en fonction du nom de colonne
+	# [TODO] : detecter la vue active dans le modèle
 	if (view=="debug") {
 		m <- melt(sim, id=index) 
-		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-		# TODO : en fonction du nom de colonne
 		unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
 		scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
 		# Tout rassembler dans un dataframe
@@ -97,10 +104,8 @@ rvle.shape <- function (
 	}
 	
 	if (view=="sensitivity") {
-		m <- melt(sim, id=index) 
-		# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-		# TODO : en fonction du nom de colonne
-		unit <- c(rep(rep(1:nExec, each=simLength), each=nVarExec)) 
+		m <- melt(sim, id="time") 
+		unit <- c(rep(rep(1:nExec, each=simLength), each=1)) 
 		# Tout rassembler dans un dataframe
 		d <- data.frame(
 			time=m$time,
@@ -165,6 +170,7 @@ rvle.setTranslator <- function (
 	## Mise en place des conditions de GraphTranslator
 	# n : nombre de noeuds (modèles) du graphe	
 	rvle.setIntegerCondition(object, condition, "E_GridNumber", n)
+	#object@sim
 	# Vecteur (string) : modèles à instancier à chaque noeud
 	rvle.setStringCondition(object, condition, "E_GridClasses", paste(rep(class,n), collapse=" "))
 	# Vecteur (string) : Matrice d'adjacence 
@@ -378,59 +384,55 @@ plot.sobol <- function (x, factors, gfx = TRUE) {
 
 
 ##### Fonctions de construction de matrices d'adjacence et de graphes #####
-#### R. Faivre 10/2010
+#### R. Faivre 01/2011
+voisinage= function( X = matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE), nbligne = 5, nbcolonne = 4, verbose = FALSE) {
 
-voisinage= function( X = matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE), nbligne = 10, nbcolonne = 10, verbose = FALSE) {
-	# X = matrice à 2 colonnes caractérisant les connexions
-	# nbligne  = nombre de lignes du réseau
-	# nbcolonne = nombre de colonnes du réseau
-	nbl.expand = nbligne+diff(range(X[,2]))
-	nbc.expand = nbcolonne+diff(range(X[,1]))
-	dim.max = nbc.expand * nbl.expand
-	vecteur = rep(0, dim.max)
-	decal.col = - min(X[,1]) + 1
-	decal.lig = + max(X[,2]) + 1
-	Xb = X
-	Xb[,1] = Xb[,1] + decal.col
-	Xb[,2] = - Xb[,2] + decal.lig
-	decalage = c(decal.col, decal.lig)
-	suite = (Xb[,2] - 1)* nbc.expand  + Xb[,1] 
-	# récupération des seuls points valides
-	vecteur[suite] = 1
-	# matrice des connexions 
-	connexion = list()
-	connexion[[1]] = NULL
-	
-	for(i in 2:dim.max)  connexion[[i]] = rep(0,length=i-1)
-	connexion = t(sapply(connexion,function(v) c(v,vecteur)[1:dim.max]))
-	
-	##on attaque par la première ligne
-	#for(i in 2:nbcolonne)  connexion[[i]] = rep(0,length=i-1)
-	#connexion = t(sapply(connexion,function(v) c(v,vecteur)[1:(nbl.expand*nbcolonne)]))
-	##on fait les suivantes (nbligne)
-	#ajout = NULL
-	#for(j in 2:nbligne) {
-	#connexplus = cbind( matrix(0, nrow=nbcolonne,ncol= (j-1)*nbc.expand),connexion)[,1:(nbl.expand*nbcolonne)]
-	#ajout = rbind(ajout, connexplus)
-	#}
-	#connexion = rbind(connexion,ajout)
-	
-	points.ext = matrix(rep(FALSE, length= dim.max), ncol = nbl.expand)
-	points.ext[ seq(decalage[2],length=nbcolonne) , seq(decalage[1],length=nbligne)] = TRUE
-	points.ext = c(points.ext)
-	
-	points.valide = matrix(rep(FALSE, length= dim.max), ncol = nbl.expand)
-	points.valide[ seq(1,length=nbcolonne) , seq(1,length=nbligne)] = TRUE
-	points.valide = c(points.valide)
-	
-	# attention on travaille sur la matrice transposée pour conserver l'ordre par colonne
-	valide = t(matrix(vecteur,ncol = nbl.expand)[ seq(decalage[2],length=nbcolonne) , seq(decalage[1],length=nbligne)])
-	#print(valide)
-	#[points.ext,points.ext]
-	if(verbose) 
-		list(valide = c(valide),  connexion = connexion[points.valide,points.ext], points.ext = points.ext, points.valide = points.valide, vecteur = vecteur, voisins = X, nbligne = nbligne, nbcolonne = nbcolonne, Xb=Xb, suite=suite, nbl.expand = nbl.expand, nbc.expand = nbc.expand, decalage=decalage, dim.max=dim.max)
-	else
-		connexion[points.valide,points.ext]
+# X = matrice à 2 colonnes caractérisant les connexions
+# nbligne  = nombre de lignes du réseau
+# nbcolonne = nombre de colonnes du réseau
+
+nbl.expand = nbligne+diff(range(X[,2]))
+nbc.expand = nbcolonne+diff(range(X[,1]))
+dim.max = nbc.expand * nbl.expand
+vecteur = rep(0, dim.max)
+decal.col = - min(X[,1]) + 1
+decal.lig = + max(X[,2]) + 1
+
+Xb = X
+Xb[,1] = Xb[,1] + decal.col
+Xb[,2] = - Xb[,2] + decal.lig
+
+# En fait ce sont les numeros des indices
+decalage = c(decal.col, decal.lig)
+
+# Numéros des points appartenant au domaine d'étude à l'intérieur du domaine étendu
+numeros.valide = matrix(seq(1,dim.max),ncol= nbc.expand, byrow=TRUE)
+numeros.valide = numeros.valide[seq(decalage[2],length= nbligne),seq(decalage[1],length = nbcolonne)]
+
+# suite est dans l'ordre de lecture de gauche à droite, de haut en bas
+suite = (Xb[,2] - 1)* nbc.expand  + Xb[,1] 
+# récupération des seuls points valides toujours dans l'ordre de lecture
+# vecteur contient les connexions du point supérieur gauche du domaine avec les points du domaine étendu
+vecteur[suite] = 1
+
+# matrice des connexions 
+# indices dans l'ordre de lecture
+connexion = list()
+connexion[[1]] = NULL
+
+for(i in 2:(nbligne*nbc.expand))  connexion[[i]] = rep(0,length=i-1)
+connexion = t(sapply(connexion,function(v) c(v,vecteur)[1:dim.max]))
+
+lignes.valide = matrix(FALSE,ncol = nbc.expand, nrow= nbligne)
+lignes.valide[seq(1,length=nbligne),seq(1,length=nbcolonne)] = TRUE
+lignes.valide = c(t(lignes.valide))
+
+connexion.fin = connexion[lignes.valide,c(t(numeros.valide))]
+
+if(verbose) 
+list(numeros.valide = c(t(numeros.valide)),  connexion = connexion.fin, vecteur = vecteur, voisins = X, nbligne = nbligne, nbcolonne = nbcolonne, Xb=Xb, suite=suite, nbl.expand = nbl.expand, nbc.expand = nbc.expand, decalage=decalage, dim.max=dim.max)
+else
+connexion.fin
 }
 
 

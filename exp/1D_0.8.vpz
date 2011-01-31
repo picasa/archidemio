@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-0.8.0.dtd">
+<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.0.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1297" height="596"  >
+<model name="Top model" type="coupled" x="0" y="0" width="468" height="603"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="274" y="38" width="1008" height="525"  >
+<model name="Crop" type="coupled" x="274" y="38" width="100" height="120"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -250,7 +250,7 @@
 <integer>1</integer>
 </port>
  <port name="meteo_file" >
-<string>2001_MTP_A.txt</string>
+<string>MTP_2001.txt</string>
 </port>
  <port name="mode" >
 <string>name</string>
@@ -346,7 +346,8 @@
 </conditions>
 <views>
 <outputs>
-<output name="vueDebug" location="" format="local" plugin="storage" />
+<output name="vueDebug" location="" format="local" plugin="storage" >
+<map><key name="columns"><integer>500</integer></key><key name="inc_columns"><integer>100</integer></key><key name="inc_rows"><integer>100</integer></key><key name="rows"><integer>500</integer></key></map></output>
 
 <output name="vueSensitivity" location="" format="local" plugin="dummy" />
 
@@ -375,7 +376,6 @@
 
 <port name="ThermalTime" >
  <attachedview name="vueDebug" />
- <attachedview name="vueSensitivity" />
 </port>
 
 </observable>

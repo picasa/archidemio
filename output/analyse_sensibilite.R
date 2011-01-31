@@ -48,7 +48,7 @@ bounds <- factors.bounds[1:8,]
 # Construire le plan
 # plan complet : f.plan <- expand.grid(va, vb)
 f.as <- getPlanMorris(factors, binf=bounds$min, bsup=bounds$max, S=200, K=6)
-f.as <- getPlanFast(factors, bounds, n=100)
+f.as <- getPlanFast(factors, bounds, n=200)
 f.as <- getPlanSobol(factors, bounds, n=300)
 f.plan <- getPlanLHS(factors, bounds, n=1000)
 
@@ -238,7 +238,7 @@ anova(f.m)
 
 
 ### Analyse de sensibilité sur modèle 2D
-f <- rvle.open("2D_0.7.vpz", "archidemio")
+f <- rvle.open("2D_0.8.vpz", "archidemio")
 #rvle.setTranslator(f, condition="condParametres", class="Unit", n=100, init=3)
 
 f.as <- getPlanFast(factors, bounds, n=100)

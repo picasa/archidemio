@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.0.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1298" height="567"  >
+<model name="Top model" type="coupled" x="0" y="0" width="468" height="487"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="35" y="45" width="100" height="120" >
 <out>
@@ -245,7 +245,7 @@
 </model>
 </class>
 </classes>
-<experiment name="exp" duration="149.000000000000000" begin="2455309.000000000000000" combination="linear" seed="1" >
+<experiment name="exp" duration="220.000000000000000" begin="2455309.000000000000000" combination="linear" seed="1" >
 <replicas seed="581869302" number="1" />
 <conditions>
 <condition name="condCropClimate" >
@@ -304,7 +304,7 @@
 <integer>1</integer>
 </port>
  <port name="meteo_file" >
-<string>2001_MTP_A.txt</string>
+<string>PB_2010.txt</string>
 </port>
  <port name="mode" >
 <string>name</string>
@@ -342,7 +342,7 @@
 <tuple>4.000000000000000 55.000000000000000 74.000000000000000</tuple>
 </port>
  <port name="E_InitTime" >
-<double>50.000000000000000</double>
+<double>100.000000000000000</double>
 </port>
  <port name="E_LatentPeriod" >
 <double>5.000000000000000</double>
@@ -366,16 +366,16 @@
 <double>0.015000000000000</double>
 </port>
  <port name="P_ElongationTT" >
-<double>300.000000000000000</double>
+<double>1000.000000000000000</double>
 </port>
  <port name="P_ExpansionSlope" >
 <double>0.015000000000000</double>
 </port>
  <port name="P_ExpansionTT" >
-<double>300.000000000000000</double>
+<double>1000.000000000000000</double>
 </port>
  <port name="P_FloweringTT" >
-<double>1500.000000000000000</double>
+<double>2000.000000000000000</double>
 </port>
  <port name="P_Porosity" >
 <double>0.900000000000000</double>
@@ -384,7 +384,7 @@
 <double>0.060000000000000</double>
 </port>
  <port name="P_SenescenceTT" >
-<double>1600.000000000000000</double>
+<double>2500.000000000000000</double>
 </port>
  <port name="P_TempBase" >
 <double>4.000000000000000</double>
@@ -417,9 +417,10 @@
 </conditions>
 <views>
 <outputs>
-<output name="vueDebug" location="" format="local" plugin="storage" />
+<output name="vueDebug" location="" format="local" plugin="dummy" />
 
-<output name="vueSensitivity" location="" format="local" plugin="dummy" />
+<output name="vueSensitivity" location="" format="local" plugin="storage" >
+<map><key name="columns"><integer>100</integer></key><key name="inc_columns"><integer>1</integer></key><key name="inc_rows"><integer>1</integer></key><key name="rows"><integer>500</integer></key></map></output>
 
 </outputs>
 <observables>
