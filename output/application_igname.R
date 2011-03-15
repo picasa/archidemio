@@ -64,6 +64,13 @@ xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", s
 dpc <- ggplot(data=aggregate(value ~ time, data=sim.l, mean, subset=sim.l$variable=="ScoreArea"), aes(x=time, y=value))
 dpc.gfx <- dpc + geom_line() + theme_bw() + ylab("Mean diseased area")
 
+## Evolution du partitionnement du type de surface malade : histogrammes + densité
+h <- sim.l[(sim.l$variable %in% HLIR==T),]
+h <- drop.levels(h)
+ggplot(h, aes(time, weight=value, fill=variable)) + geom_bar(binwidth=10, position="fill") + theme_bw() 
+ggplot(h, aes(time, ..density.., weight=value, colour=variable)) + geom_freqpoly(aes(group=variable), binwidth=1) + theme_bw()
+
+
 ## Cartographie maladie : Mise en forme des sortie : table 3D  {x, y, valeur de sortie}
 # Valeur finale (utiliser vue "finish" si l'on a besoin que de cette variable)
 m.s <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")

@@ -447,8 +447,8 @@ biais<-function (sim, obs, digits=2) {
 	round(mean(sim - obs), digits=digits)
 }
 # Calculer RMSE
-rmse<- function(sim, obs, digits=2) {
-	round(sqrt(mean((sim - obs)^2)), digits=digits)
+rmse<- function(sim, obs) {
+	sqrt(mean((sim - obs)^2, na.rm=T))
 }
 # Calculer l'Efficience du modèle
 efficience<- function (sim, obs, digits=2) {

@@ -41,14 +41,10 @@ public:
             ve::fsa::Statechart(init, events)
     {
         mIndex = 0;
-        ThermalTime0 = 0;
+        //ThermalTime0 = 0;
         ThermalTime = 0;
-        P_ExpansionTT = 0;
-        P_SenescenceTT = 0;
-        P_ReproductiveTT = 0;
-        
-        P_ExpansionTT = events.getDouble("P_ExpansionTT");
-		P_SenescenceTT = events.getDouble("P_SenescenceTT");
+        PreformedTT = 0;
+        P_ReproductiveTT = 0;        
 		P_ReproductiveTT = events.getDouble("P_ReproductiveTT");
         
 
@@ -101,30 +97,38 @@ public:
     virtual ~PiloteFSA()
     { }
 
-    // Stocke le temps thermique lors de l'entrée dans un état, incrémente le compteur de modèle 
+    // incrémente l'index du modèle 
     void a(const vd::Time& /* time */)
     {
-        ThermalTime0 = ThermalTime;
+        // Stocke le temps thermique lors de l'entrée dans un état
+        //ThermalTime0 = ThermalTime;
         mIndex++;
     }
 
-    // Condition pour permettre la transition entre état : somme de T° > paramètre
+    // Condition pour permettre la transition entre état 
+    // soit : somme de T° > paramètre
+    // soit : somme de T° > somme théorique 
     bool development(const vd::Time& /* time */)
     { 
-        if (mIndex <= P_InitiationTT.size()) {
-        return ThermalTime-ThermalTime0 > P_InitiationTT[mIndex-1];
+        if (mIndex <= P_InitiationTT.size()-1) {
+            // On compte le tps passé dans un état et le compare à un paramètre
+            //return ThermalTime-ThermalTime0 >= P_InitiationTT[mIndex-1];
+            
+            // On calcule une date thermique théorique en testant directement le TT   
+            return ThermalTime > mIndex * P_InitiationTT[mIndex-1]; //  numérotation depuis 0 dans un vecteur        
+        
         } else {
-        return ThermalTime-ThermalTime0 > P_InitiationTT.back();            
+            //return ThermalTime-ThermalTime0 >= P_InitiationTT.back();
+            PreformedTT = std::accumulate(P_InitiationTT.begin(),P_InitiationTT.end()-1,0);
+            return ThermalTime >  PreformedTT + (mIndex-3)*P_InitiationTT.back();
         }
     }
     
     // Condition pour stopper le developpement : somme de T° > floraison 
     bool flowering(const vd::Time& /* time */)
     { 
-        //if (mIndex > P_InitiationTT.size()) {
         return ThermalTime > P_ReproductiveTT;
         //} 
-        //return false;
     }
  
     // condition de transition avant floraison
@@ -152,8 +156,6 @@ public:
     { 
       vd::ExternalEvent* ee=new vd::ExternalEvent("add");
       ee << vd::attribute("index", new vv::Integer(mIndex));
-      ee << vd::attribute("P_ExpansionTT", new vv::Double(ThermalTime + P_ExpansionTT));
-      ee << vd::attribute("P_SenescenceTT", new vv::Double(ThermalTime + P_SenescenceTT));
       output.addEvent(ee);
     }
    
@@ -164,10 +166,9 @@ public:
 private:
     unsigned int mIndex;
     std::vector < unsigned int > P_InitiationTT;
-    double ThermalTime0;
+    int PreformedTT;
+    //double ThermalTime0;
     double ThermalTime;
-    double P_ExpansionTT;
-    double P_SenescenceTT;
     double P_ReproductiveTT;
 };
 

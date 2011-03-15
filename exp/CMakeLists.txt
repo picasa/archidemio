@@ -1,1 +1,0 @@
-INSTALL(FILES empty.vpz DESTINATION exp)

@@ -39,8 +39,6 @@ public:
         mWaiting = getModel().getInputPortNumber() - 1;
         mAddModel = false;
         mNumModel = 1;
-        P_ExpansionTT=0;
-        P_SenescenceTT=0;
         return vle::devs::Time::infinity;
     }
 
@@ -59,10 +57,11 @@ public:
         if (mPhase == ADDED) {
             std::map < std::string, double >::const_iterator it;
             
-			std::string modelName((boost::format("Unit_%1%_AreaActive") % (mNumModel - 1)).str());
-			output.addEvent(buildEventWithAString("addModelSumAreaActive", "name", modelName));
-            
-			for (it = mBuffer.begin(); it != mBuffer.end(); it++) {
+	    // Création de l'événement d'ajout de ports sur le modèle de somme
+	    std::string modelName((boost::format("Unit_%1%_AreaActive") % (mNumModel - 1)).str());
+	    output.addEvent(buildEventWithAString("addModelSumAreaActive", "name", modelName));
+
+	    for (it = mBuffer.begin(); it != mBuffer.end(); it++) {
                 vle::devs::ExternalEvent* ee = buildEvent(it->first);
                 
                 ee << vle::devs::attribute("name", it->first);
@@ -74,15 +73,15 @@ public:
 
     virtual void internalTransition(const vle::devs::Time& /* time */)
     {
-		switch (mPhase) {
-			case IDLE: 
-	            throw vle::utils::InternalError(
-	                vle::fmt(_("[%1%] Buffer: Phase IDLE")) %
-	                getModelName());
-			case ADDED: mPhase=SENDED; break;
-			case SENDED: mPhase=RESTORE; etape3(); break;
-			case RESTORE: mPhase=IDLE; mAddModel= false; break;
-			}
+	switch (mPhase) {
+	    case IDLE: 
+	    throw vle::utils::InternalError(
+		vle::fmt(_("[%1%] Buffer: Phase IDLE")) %
+		getModelName());
+	    case ADDED: mPhase=SENDED; break;
+	    case SENDED: mPhase=RESTORE; etape3(); break;
+	    case RESTORE: mPhase=IDLE; mAddModel= false; break;
+	    }
     }
 
     virtual void externalTransition(const vle::devs::ExternalEventList& event,
@@ -92,116 +91,107 @@ public:
         typedef std::map < std::string, double >::iterator iterator;
         
         // Nettoyage de Buffer
-		updateTime(time);
+	updateTime(time);
 
-		// Construction du Buffer si les evts contiennent des valeurs
+	// Construction du Buffer si les evts contiennent des valeurs
         for (const_iterator it = event.begin(); it != event.end(); ++it) {
-			if ((*it)->existAttributeValue("value")) {
-				std::string name = (*it)->getStringAttributeValue("name");
-				double value = (*it)->getDoubleAttributeValue("value");
-				
-				std::pair < iterator, bool > r;
-		   
-				r = mBuffer.insert(std::make_pair < std::string, double >(name, value));
-				if(r.second == true) {
-					mWaiting --;
-					//TraceModel("mBuffer add");
-				} else {
-					//TraceModel("mBuffer not add");
-				}
-				assert(mWaiting >= 0);
-			}
+	    if ((*it)->existAttributeValue("value")) {
+		std::string name = (*it)->getStringAttributeValue("name");
+		double value = (*it)->getDoubleAttributeValue("value");
+		
+		std::pair < iterator, bool > r;
+    
+		r = mBuffer.insert(std::make_pair < std::string, double >(name, value));
+		if(r.second == true) {
+		    mWaiting --;
+		    //TraceModel("mBuffer add");
+		} else {
+		    //TraceModel("mBuffer not add");
 		}
+		assert(mWaiting >= 0);
+	    }
+	}
 
-		// Separer le remplissage du buffer du fait de recevoir un evenement "add"
+	// Separer le remplissage du buffer du fait de recevoir un evenement "add"
         for (const_iterator it = event.begin(); it != event.end(); ++it) {
             if ((*it)->onPort("add")) {
-				mAddModel = true;
-                P_ExpansionTT = (*it)->getDoubleAttributeValue("P_ExpansionTT");
-                P_SenescenceTT = (*it)->getDoubleAttributeValue("P_SenescenceTT");
-				//TraceModel("mAddModel: add");
+		mAddModel = true;
+		//TraceModel("mAddModel: add");
             }
         }
         
         //TraceModel(mWaiting);
         
-		if (mAddModel == true and mWaiting == 0) {
-			mPhase = ADDED;
-			etape1();
-		} else {
-			mPhase = IDLE;
-		}
+	    if (mAddModel == true and mWaiting == 0) {
+		mPhase = ADDED;
+		etape1();
+	    } else {
+		mPhase = IDLE;
+	    }
 
 	}
 
 	void updateTime(const vle::devs::Time& time) 
 	{
-		if (time > mLastTime) {
-			mBuffer.clear();
-			mAddModel = false;
-			mWaiting = getModel().getInputPortNumber() - 1;
-		} 
-		mLastTime = time;
+	    if (time > mLastTime) {
+		mBuffer.clear();
+		mAddModel = false;
+		mWaiting = getModel().getInputPortNumber() - 1;
+	    } 
+	    mLastTime = time;
 	}
 	
 	void etape1() {
-		std::string previous((vle::fmt("Unit_%1%") % (mNumModel - 1)).str());
-		std::string current((vle::fmt("Unit_%1%") % mNumModel).str());
-
-		// Edition de la valeur d'un paramètre variable entre unité
-		vle::vpz::Condition& cnd = conditions().get("condParametres");
-		cnd.clearValueOfPort("P_ExpansionTT");
-		cnd.addValueToPort("P_ExpansionTT", new vle::value::Double(P_ExpansionTT));
-		cnd.clearValueOfPort("P_SenescenceTT");
-		cnd.addValueToPort("P_SenescenceTT", new vle::value::Double(P_SenescenceTT));
-		
-		// Creation des unites fonctionnelles           
-		createModelFromClass("Unit", current); 
-		
-		// Creation des connections modèles DE -> modèles EXE 
-		addConnection("Initiation", "InitQuantity", current, "perturb");
-		addConnection("CropClimate", "ActionTemp", current, "ActionTemp");
-		addConnection("CropPhenology", "TempEff", current, "TempEff");
-		addConnection("CropPhenology", "ThermalTime", current, "ThermalTime");
-        
-		// Creation des connexions avec Buffer -> modèles EXE | EXE -> Buffer
-		addConnection("Buffer", "ThermalTime", current, "ThermalTime");
-		addConnection("Buffer", "ActionTemp", current, "ActionTemp");
-		addConnection("Buffer", "TempEff", current, "TempEff");
-		addConnection("Buffer", "out", current, "in");
-		addConnection(current, "out", "Buffer", "in");
-        		
-		// Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
-		addInputPort("SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());            
-		
-		// Creation des connexions sortantes
-		addConnection(current, "AreaActive", "SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());
-		
-		// Suppression des connexions entre modèles EXE n-1 et Buffer
-		if (mNumModel == 1) {
-			removeConnection("Unit_0", "update", "Buffer", "in");
-		} else {
-			removeConnection(previous, "out", "Buffer", "in");
-		}
-			
-		// Creation des connexions entre modèles EXE
-		if (mNumModel != 1) {
-			addConnection(previous, "out", current, "in");
-		} else {
-			addConnection("Unit_0", "update", current, "in");
-		}
-		
-		mNumModel++;
+	    std::string previous((vle::fmt("Unit_%1%") % (mNumModel - 1)).str());
+	    std::string current((vle::fmt("Unit_%1%") % mNumModel).str());
+	    
+	    // Creation des unites fonctionnelles           
+	    createModelFromClass("Unit", current); 
+	    
+	    // Creation des connections modèles DE -> modèles EXEC 
+	    addConnection("Initiation", "InitQuantity", current, "perturb");
+	    addConnection("CropClimate", "ActionTemp", current, "ActionTemp");
+	    addConnection("CropPhenology", "TempEff", current, "TempEff");
+	    addConnection("CropPhenology", "ThermalTime", current, "ThermalTime");
+    
+	    // Creation des connexions avec Buffer -> modèles EXEC | EXEC -> Buffer
+	    addConnection("Buffer", "ThermalTime", current, "ThermalTime");
+	    addConnection("Buffer", "ActionTemp", current, "ActionTemp");
+	    addConnection("Buffer", "TempEff", current, "TempEff");
+	    addConnection("Buffer", "out", current, "in");
+	    addConnection(current, "out", "Buffer", "in");
+		    
+	    // Creation des ports entrants sur le modèle de somme (passage unité -> couvert)
+	    addInputPort("SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());            
+	    
+	    // Creation des connexions sortantes
+	    addConnection(current, "AreaActive", "SumAreaActive", (vle::fmt("%1%_AreaActive") % current).str());
+	    
+	    // Suppression des connexions entre modèles EXE n-1 et Buffer
+	    if (mNumModel == 1) {
+		removeConnection("Unit_0", "update", "Buffer", "in");
+	    } else {
+		removeConnection(previous, "out", "Buffer", "in");
+	    }
+		    
+	    // Creation des connexions entre modèles EXE
+	    if (mNumModel != 1) {
+		addConnection(previous, "out", current, "in");
+	    } else {
+		addConnection("Unit_0", "update", current, "in");
+	    }
+	    
+	    mNumModel++;
 	}
 
 	void etape3() {
-		std::string previous((vle::fmt("Unit_%1%") % (mNumModel - 1)).str());
+	    std::string previous((vle::fmt("Unit_%1%") % (mNumModel - 1)).str());
 
-		// Suppression des connexions Buffer -> modèle EXE précédent
-		removeConnection("Buffer", "ThermalTime", previous, "ThermalTime");
-		removeConnection("Buffer", "ActionTemp", previous, "ActionTemp");
-		removeConnection("Buffer", "TempEff", previous, "TempEff");
-		removeConnection("Buffer", "out", previous, "in");
+	    // Suppression des connexions Buffer -> modèle EXE précédent
+	    removeConnection("Buffer", "ThermalTime", previous, "ThermalTime");
+	    removeConnection("Buffer", "ActionTemp", previous, "ActionTemp");
+	    removeConnection("Buffer", "TempEff", previous, "TempEff");
+	    removeConnection("Buffer", "out", previous, "in");
 		
 	}
 
@@ -213,8 +203,6 @@ private:
     int mWaiting;
     bool mAddModel;
     int mNumModel;
-    double P_ExpansionTT;
-    double P_SenescenceTT;
 };
 
 
@@ -236,16 +224,16 @@ class ExecutiveGraph : public vle::devs::Executive
 {
 public:
     ExecutiveGraph(const vle::devs::ExecutiveInit& init,
-              const vle::devs::InitEventList& events) :
-		vle::devs::Executive(init, events)
-	{
-		const vle::value::TupleValue& tuple(vle::value::toTuple(events.get("E_InitSpace")));
-		vle::value::TupleValue::const_iterator it;
-		
-		for (it = tuple.begin(); it != tuple.end(); ++it) {
-			E_InitSpace.push_back(*it);
-		}
+      const vle::devs::InitEventList& events) :
+	vle::devs::Executive(init, events)
+    {
+	const vle::value::TupleValue& tuple(vle::value::toTuple(events.get("E_InitSpace")));
+	vle::value::TupleValue::const_iterator it;
+	
+	for (it = tuple.begin(); it != tuple.end(); ++it) {
+	    E_InitSpace.push_back(*it);
 	}
+    }
 	
     virtual ~ExecutiveGraph() { }
 
@@ -406,18 +394,19 @@ public:
  	}
 
 	void etape3() {
-		for (int i = 0; i!=mNumber; i++) {
-			const std::string current = (vle::fmt("%1%-%2%") % mPrefix % i).str();
-			
-			removeConnection("Buffer", "ThermalTime", current, "ThermalTime");
-			removeConnection("Buffer", "ActionTemp", current, "ActionTemp");
-			removeConnection("Buffer", "TempEff", current, "TempEff");
-		}
+	    for (int i = 0; i!=mNumber; i++) {
+		const std::string current = (vle::fmt("%1%-%2%") % mPrefix % i).str();
+		
+		removeConnection("Buffer", "ThermalTime", current, "ThermalTime");
+		removeConnection("Buffer", "ActionTemp", current, "ActionTemp");
+		removeConnection("Buffer", "TempEff", current, "TempEff");
+	    }
 				
-		std::ofstream file("output.vpz");
+	std::ofstream file("output.vpz");
         dump(file);		
 
-		// TODO delModel("Buffer");		
+	// TODO delModel("Buffer");		
+	
 	}
 
 private:

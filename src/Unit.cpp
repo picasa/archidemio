@@ -55,6 +55,7 @@ public:
         E_LatentPeriod = events.getDouble("E_LatentPeriod");
         
         // Variables d'entrée synchrones/asynchrone
+        // si ThermalTime n'est plus utilisé, enlever les connections dynamiques depuis UnitConstruction
 		TempEff = createSync("TempEff"); 
 		ThermalTime = createSync("ThermalTime"); 
         ActionTemp = createSync("ActionTemp");
@@ -151,13 +152,13 @@ virtual void compute(const vd::Time& /*time*/)
      * - Si ThermalTime() est utilisé la valeur de P_ExpansionTT doit être recalculée (Pilote.cpp) en temps thermique
      * - sinon on utilise ThermalAge()
      */
-    RateAreaExpansion = TempEff() * (P_AreaMax * P_ExpansionSlope) * exp(-P_ExpansionSlope * (ThermalTime() - P_ExpansionTT)) / pow((1 + exp(-P_ExpansionSlope * (ThermalTime() - P_ExpansionTT))),2);
+    RateAreaExpansion = TempEff() * (P_AreaMax * P_ExpansionSlope) * exp(-P_ExpansionSlope * (ThermalAge() - P_ExpansionTT)) / pow((1 + exp(-P_ExpansionSlope * (ThermalAge() - P_ExpansionTT))),2);
     
     /* Vitesse de senescence : pose un problème pour déterminer l'asymptote
      * (paramètre) alors qu'il depends de l'évolution de la maladie. 
      * Plutôt que de le résoudre analytiquement, on conditionne cette dérivée.  
      */ 
-    double RateAreaSenescence_tmp = TempEff() * (P_AreaMax * P_SenescenceSlope) * exp(-P_SenescenceSlope * (ThermalTime() - P_SenescenceTT)) / pow((1 + exp(-P_SenescenceSlope * (ThermalTime() - P_SenescenceTT))),2);
+    double RateAreaSenescence_tmp = TempEff() * (P_AreaMax * P_SenescenceSlope) * exp(-P_SenescenceSlope * (ThermalAge() - P_SenescenceTT)) / pow((1 + exp(-P_SenescenceSlope * (ThermalAge() - P_SenescenceTT))),2);
     if ((AreaHealthy(-1) <= 0) and (AreaRemoved(-1) > P_AreaMax)) {
         RateAreaSenescence_tmp = 0;
     }

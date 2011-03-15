@@ -20,14 +20,19 @@ ObsTime = c(30, 60, 90, 120, 150)
 ##### Analyse et graphiques des sorties  modèle 1D #####
 ### Simulation
 # vle -m -l -o 2 -P archidemio plan7000.vpz
+# Classique
 f <- rvle.open("1D_0.8.vpz", "archidemio")					# lien
-f <- new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")	# classe
 
 # changer le plugin de sortie (vueDebug : 12 variables d'état, vueSensitivity : 1 variable d'état)
 rvle.setOutputPlugin(f, "vueSensitivity", "dummy")
 rvle.setOutputPlugin(f, "vueDebug", "storage")
 
-sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
+sim <- rvle.run(f)
+sim.l <- rvle.shape(sim, nExec=25, nVarNormal=2, nVarExec=12)
+
+# Objet
+f <- new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")	# classe
+sim.l<-rvle.sim(f, nExec=24, nVarNormal=2, nVarExec=12)
 
 #### Graphiques
 ### Dynamiques des variables f(temps)
@@ -116,11 +121,18 @@ dev.off()
 
 
 ### Histogramme des classes de surface
+h <- sim.l[(sim.l$variable %in% HLIR==T),]
+h <- drop.levels(h)
+
+# Histo sans traitement de données préalable
+ggplot(h, aes(time, weight=value, fill=variable)) + geom_bar(binwidth=10, position="fill") + theme_bw() 
+ggplot(h, aes(time, ..density.. ,weight=value, colour=variable)) + geom_freqpoly(aes(group=variable), binwidth=1) + theme_bw()
+
+# Normalisation : somme HLIR (ou LAI de la culture)
 h <- sim.l[(sim.l$variable %in% HLIR==T & sim.l$time %in% ObsTime==T),]
 h <- drop.levels(h)
 h$variable <- factor(h$variable, levels=rev(HLIR))
 
-# Normalisation : somme ou LAI de la culture
 h.sum <- aggregate(h$value, by=list(time=h$time), sum, na.rm=T)
 colnames(h.sum) <- c("time","sum")
 #h.lai <- sim.l[(sim.l$variable=="LAI" & sim.l$time %in% ObsTime==T),]
@@ -134,8 +146,7 @@ ggplot(h, aes(variable, value)) +
 	geom_bar(stat="identity") + 
 	facet_wrap(~ time, nrow=1) + 
 	coord_flip() + 
-	labs(y = "% LAI", x = "")
-
+	labs(y = "% Total Leaf Area", x = "")
 
 
 ### Dynamique de progression de la maladie
@@ -374,7 +385,6 @@ xyplot(sim.l[sim.l$variable=="Receptivity","value"] ~ sim.l[sim.l$variable=="The
 
 # Fonction de porosité
 xyplot(sim.l[sim.l$variable=="Porosity","value"] ~ sim.l[sim.l$variable=="ThermalAge","value"], type="l", alpha=0.2, lty=1, col="black")
-
 
 
 
