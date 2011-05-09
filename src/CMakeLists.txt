@@ -1,7 +1,8 @@
 INCLUDE_DIRECTORIES(
   ${CMAKE_SOURCE_DIR}/src
   ${VLE_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS})
+  ${Boost_INCLUDE_DIRS}
+  ${Eigen2_INCLUDE_DIR})
 
 LINK_DIRECTORIES(
   ${VLE_LIBRARY_DIRS}
@@ -14,7 +15,8 @@ ADD_LIBRARY(CropLeafArea SHARED CropLeafArea.cpp)
 ADD_LIBRARY(Unit SHARED Unit.cpp)
 ADD_LIBRARY(Initiation SHARED Initiation.cpp)
 ADD_LIBRARY(Pilote SHARED Pilote.cpp)
-ADD_LIBRARY(UnitConstructionGen SHARED UnitConstructionGen.cpp)
+ADD_LIBRARY(UnitConstructionGen SHARED UnitConstructionGen.cpp
+  GraphTranslator.hpp GraphTranslator.cpp)
 ADD_LIBRARY(Connector SHARED Connector.cpp)
 ADD_LIBRARY(CropState SHARED CropState.cpp)
 

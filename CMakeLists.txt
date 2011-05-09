@@ -39,6 +39,13 @@ FIND_PACKAGE(PkgConfig REQUIRED)
 PKG_CHECK_MODULES(VLE vle-1.0)
 
 ##
+## Find eigen
+##
+
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+FIND_PACKAGE(Eigen2 REQUIRED)
+
+##
 ## Find boost
 ##
 
