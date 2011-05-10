@@ -26,12 +26,12 @@ source("fonctions.R")
 factors.name <- c(
 	"E_InitTime",
 	"E_InfectiousPeriod",
-	"E_RateDeseaseTransmission",
+	"E_RateAutoDeposition",
 	"E_RateAlloDeposition",
 	"E_InitQuantity",
 	"E_LatentPeriod",
 	"P_UnitTTSen",
-	"M_TempOpt"
+	"E_TempOpt"
 )
 
 factors.bounds <- data.frame(

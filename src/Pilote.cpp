@@ -110,17 +110,21 @@ public:
     // soit : somme de T° > somme théorique 
     bool development(const vd::Time& /* time */)
     { 
-        if (mIndex <= P_InitiationTT.size()-1) {
-            // On compte le tps passé dans un état et le compare à un paramètre
-            //return ThermalTime-ThermalTime0 >= P_InitiationTT[mIndex-1];
+        if (P_InitiationTT.size() >= 2) {
+            if (mIndex <= P_InitiationTT.size()-1) {
+                // On compte le tps passé dans un état et le compare à un paramètre
+                //return ThermalTime-ThermalTime0 >= P_InitiationTT[mIndex-1];
+                
+                // On calcule une date thermique théorique en testant directement le TT   
+                return ThermalTime > mIndex * P_InitiationTT[mIndex-1]; //  numérotation depuis 0 dans un vecteur        
             
-            // On calcule une date thermique théorique en testant directement le TT   
-            return ThermalTime > mIndex * P_InitiationTT[mIndex-1]; //  numérotation depuis 0 dans un vecteur        
-        
+            } else {
+                //return ThermalTime-ThermalTime0 >= P_InitiationTT.back();
+                PreformedTT = std::accumulate(P_InitiationTT.begin(),P_InitiationTT.end()-1,0);
+                return ThermalTime >  PreformedTT + (mIndex-3)*P_InitiationTT.back();
+            }
         } else {
-            //return ThermalTime-ThermalTime0 >= P_InitiationTT.back();
-            PreformedTT = std::accumulate(P_InitiationTT.begin(),P_InitiationTT.end()-1,0);
-            return ThermalTime >  PreformedTT + (mIndex-3)*P_InitiationTT.back();
+            return ThermalTime > mIndex * P_InitiationTT[0];
         }
     }
     

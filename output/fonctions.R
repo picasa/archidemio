@@ -163,6 +163,12 @@ rvle.setTranslator <- function (
 		A = voisinage(neighbour, nbcolonne=sqrt(n), nbligne=sqrt(n))
 	}
 		
+	# Small-World.
+	if (type=="smallworld") {
+		G = watts.strogatz.game(dim=1, size=n, nei=8, p=0.01)
+		A = get.adjacency(G)
+	}
+	
 	rownames(A)<-c(1:n)-1
 	colnames(A)<-c(1:n)-1
 	
@@ -385,14 +391,14 @@ plot.sobol <- function (x, factors, gfx = TRUE) {
 
 ##### Fonctions de construction de matrices d'adjacence et de graphes #####
 #### R. Faivre 01/2011
-voisinage= function( X = matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE), nbligne = 5, nbcolonne = 4, verbose = FALSE) {
+voisinage= function(X, nbligne = 5, nbcolonne = 5, verbose = F) {
 
 # X = matrice à 2 colonnes caractérisant les connexions
 # nbligne  = nombre de lignes du réseau
 # nbcolonne = nombre de colonnes du réseau
 
-nbl.expand = nbligne+diff(range(X[,2]))
-nbc.expand = nbcolonne+diff(range(X[,1]))
+nbl.expand = nbligne+diff(range(X[,2])) +1
+nbc.expand = nbcolonne+diff(range(X[,1])) +1
 dim.max = nbc.expand * nbl.expand
 vecteur = rep(0, dim.max)
 decal.col = - min(X[,1]) + 1
@@ -429,10 +435,11 @@ lignes.valide = c(t(lignes.valide))
 
 connexion.fin = connexion[lignes.valide,c(t(numeros.valide))]
 
-if(verbose) 
-list(numeros.valide = c(t(numeros.valide)),  connexion = connexion.fin, vecteur = vecteur, voisins = X, nbligne = nbligne, nbcolonne = nbcolonne, Xb=Xb, suite=suite, nbl.expand = nbl.expand, nbc.expand = nbc.expand, decalage=decalage, dim.max=dim.max)
-else
-connexion.fin
+if(verbose) { 
+	list(numeros.valide = c(t(numeros.valide)),  connexion = connexion.fin, vecteur = vecteur, voisins = X, nbligne = nbligne, nbcolonne = nbcolonne, Xb=Xb, suite = suite, nbl.expand = nbl.expand, nbc.expand = nbc.expand, decalage=decalage, dim.max=dim.max)
+} else {
+	connexion.fin
+}
 }
 
 

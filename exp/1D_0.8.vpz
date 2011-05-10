@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.0.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="468" height="603"  >
+<model name="Top model" type="coupled" x="0" y="0" width="571" height="658"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -129,11 +129,11 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="UnitPilot" port="ThermalTime" />
+ <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="Buffer" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="SumAreaActive" port="update" />
@@ -281,13 +281,16 @@
  <port name="E_LatentPeriod" >
 <double>3.000000000000000</double>
 </port>
+ <port name="E_OutDegree" >
+<integer>1</integer>
+</port>
  <port name="E_RateAlloDeposition" >
 <double>0.400000000000000</double>
 </port>
- <port name="E_RateDeseaseTransmission" >
+ <port name="E_RateAutoDeposition" >
 <double>0.600000000000000</double>
 </port>
- <port name="M_TempOpt" >
+ <port name="E_TempOpt" >
 <double>25.000000000000000</double>
 </port>
  <port name="P_AreaMax" >
@@ -442,7 +445,7 @@
 
 <port name="RateAreaSenescence" />
 
-<port name="RateDeseaseTransmission" >
+<port name="RateAutoDeposition" >
  <attachedview name="vueDebug" />
 </port>
 

@@ -28,7 +28,7 @@ rvle.setOutputPlugin(f, "vueSensitivity", "dummy")
 rvle.setOutputPlugin(f, "vueDebug", "storage")
 
 sim <- rvle.run(f)
-sim.l <- rvle.shape(sim, nExec=25, nVarNormal=2, nVarExec=12)
+sim.l <- rvle.shape(sim, nExec=28, nVarNormal=2, nVarExec=12)
 
 # Objet
 f <- new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")	# classe
@@ -123,10 +123,19 @@ dev.off()
 ### Histogramme des classes de surface
 h <- sim.l[(sim.l$variable %in% HLIR==T),]
 h <- drop.levels(h)
+h$variable <- factor(h$variable, levels=rev(HLIR))
 
 # Histo sans traitement de données préalable
 ggplot(h, aes(time, weight=value, fill=variable)) + geom_bar(binwidth=10, position="fill") + theme_bw() 
-ggplot(h, aes(time, ..density.. ,weight=value, colour=variable)) + geom_freqpoly(aes(group=variable), binwidth=1) + theme_bw()
+
+dens.time <- ggplot(h, aes(time, ..density.. ,weight=value, colour=variable))
+dens.time.gfx <- dens.time + 
+	geom_freqpoly(aes(group=variable), binwidth=1) + 
+	scale_colour_brewer(palette="PRGn", type="div") + theme_bw() 
+
+Cairo(file="seir.pdf", width = 6, height = 5, units="in", type="pdf", pointsize=10) 	
+print(dens.time.gfx)
+dev.off()
 
 # Normalisation : somme HLIR (ou LAI de la culture)
 h <- sim.l[(sim.l$variable %in% HLIR==T & sim.l$time %in% ObsTime==T),]
@@ -168,13 +177,18 @@ for (i in seq(5,SimLength, by=5)) {
 
 
 
+
+
+
+
+
 ########################################################################
 #### Analyse et graphiques des sorties  modèle 2D ####
 f <- new("Rvle", file = "2D_0.8.vpz", pkg = "archidemio")	# classe
 
 f <- rvle.open("2D_0.8.vpz", "archidemio")
-rvle.setOutputPlugin(f, "vueSensitivity", "storage")
-rvle.setOutputPlugin(f, "vueDebug", "dummy")
+rvle.setOutputPlugin(f, "vueSensitivity", "dummy")
+rvle.setOutputPlugin(f, "vueDebug", "storage")
 
 ## Paramétrage de GraphTranslator (graphe de connection)
 # Nombre de noeuds (n=100 ds le vpz)
@@ -197,6 +211,7 @@ system.time(sim.l<-rvle.sim(f, nExec=n, nVarExec=1, index="time", view="sensitiv
 # couche classique (ok pour exploration)
 sim <- rvle.run(f)
 sim.l<-rvle.shape(sim, view="sensitivity")
+sim.l<-rvle.shape(sim, view="debug")
 
 ## Variables d'états "culture"
 c <- sim.l[sim.l$scale=="crop",]
@@ -205,7 +220,35 @@ crop.gfx <- crop + geom_line() + facet_wrap(~ variable, scales="free", ncol=2) +
 
 ## Variables d'états "unité"
 trellis.par.set(canonical.theme(color = FALSE))
-xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l", alpha=0.05, lty=1)
+xyplot(value ~ time | variable, groups=unit, data=sim.l, subset=scale=="unit", scale="free", type="l", alpha=0.2, lty=1)
+
+
+### Histogramme des classes de surface
+h <- sim.l[(sim.l$variable %in% HLIR==T),]
+h <- drop.levels(h)
+h$variable <- factor(h$variable, levels=rev(HLIR))
+# Histo sans traitement de données préalable
+ggplot(h, aes(time, weight=value, fill=variable)) + geom_bar(binwidth=1, position="fill") + theme_bw() 
+
+dens.time <- ggplot(h, aes(time, ..density.. ,weight=value, colour=variable))
+dens.time.gfx <- dens.time + 
+	geom_freqpoly(aes(group=variable), binwidth=1) + 
+	scale_colour_brewer(palette="PRGn", type="div") + theme_bw() 
+
+Cairo(file="seir_2D.pdf", width = 6, height = 5, units="in", type="pdf", pointsize=10) 	
+print(dens.time.gfx)
+dev.off()
+
+## Juste les variables de surface foliaire, pour montrer la diversité des dynamiques des unités
+l <- sim.l[(sim.l$variable %in% c("AreaActive","AreaRemoved")==T),]
+l <- drop.levels(l)
+area <- ggplot(l, aes(time, value, colour=variable, group=unit)) 
+area.gfx <- area +
+	geom_path(alpha = 0.5, size=0.1) +
+	scale_color_manual(values=c("darkgreen","purple")) + theme_bw()
+Cairo(file="area_dynamics.pdf", width = 7, height = 5, units="in", type="pdf", pointsize=10) 	
+print(area.gfx)
+dev.off()
 
 
 ## Progression de la maladie dans le temps
@@ -305,9 +348,59 @@ print(grid.s)
 dev.off()
 
 
+############# Impact du paramétrage de voisinage   #####################
+n=400 # sqrt(n) doit être entier
+
+# 1. 4 voisins réguliers
+f <- rvle.open("2D_0.8.vpz", "archidemio")
+
+#A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="lattice")
+A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="smallworld")
+rvle.setIntegerCondition(f, "condParametres", "E_OutDegree", 8)
+
+system.time(sim <- rvle.run(f))
+sim.l<-rvle.shape(sim, view="sensitivity")
+
+v1 <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")
+v1 <- data.frame(
+	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
+	score = v1$value
+)
 
 
+# 2. 8 voisins réguliers
+f <- rvle.open("2D_0.8.vpz", "archidemio")
 
+X <- matrix(c(1,0, 1,-1, 0,-1, -1,-1, -1,0, -1,1, 0,1, 1,1), ncol=2,byrow=TRUE) # 8 Voisins
+A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="custom", neighbour=X)
+#rvle.setIntegerCondition(f, "condParametres", "E_OutDegree", 8)
+
+system.time(sim <- rvle.run(f))
+sim.l<-rvle.shape(sim, view="sensitivity")
+
+v2 <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")
+v2 <- data.frame(
+	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
+	score = v2$value
+)
+
+# Assemblage et visualisation
+d <- rbind(
+	data.frame(v1, graph="Small-World"),
+	data.frame(v2, graph="8, lattice")
+)
+
+
+v <- ggplot(data=d, aes(x, y, z = score))
+v.gfx <- v + geom_tile(aes(fill = score)) +
+	facet_wrap(~ graph, nrow=1) +
+	stat_contour(bins = sqrt(n)/10) +
+	scale_fill_gradient(low="white", high="black") +
+	scale_y_reverse() + opts(aspect.ratio = 1) + theme_bw()
+
+Cairo(file="neighbours.pdf", width = 16, height = 5, units="in", type="pdf", pointsize=10)
+print(v.gfx)
+dev.off()
 
 ########################################################################
 #### DEBUG ####

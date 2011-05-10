@@ -1,7 +1,11 @@
 /**
-  * @file UnitPathogen.cpp
-  * @author P. Casadebaig-(The RECORD team -INRA )
+  * @file Unit.cpp
+  * @author P. Casadebaig
+  * \brief Classe de modèle d'unité fonctionnelle.
+  * Calcule la croissance de l'hôte et celle du pathogène
   */
+
+ 
 
 /*
  * Copyright (C) 2010 INRA
@@ -49,10 +53,11 @@ public:
 		P_ElongationSlope = events.getDouble("P_ElongationSlope");
 		P_ElongationTT = events.getDouble("P_ElongationTT");
         P_Porosity = events.getDouble("P_Porosity");
-        E_RateDeseaseTransmission = events.getDouble("E_RateDeseaseTransmission");
+        E_RateAutoDeposition = events.getDouble("E_RateAutoDeposition");
         E_RateAlloDeposition = events.getDouble("E_RateAlloDeposition");
         E_InfectiousPeriod = events.getDouble("E_InfectiousPeriod");
         E_LatentPeriod = events.getDouble("E_LatentPeriod");
+        E_OutDegree = events.getInt("E_OutDegree");
         
         // Variables d'entrée synchrones/asynchrone
         // si ThermalTime n'est plus utilisé, enlever les connections dynamiques depuis UnitConstruction
@@ -74,7 +79,7 @@ public:
         ScoreArea = createVar("ScoreArea");
         AreaSenescence = createVar("AreaSenescence");
         AreaDeseased = createVar("AreaDeseased");
-        RateDeseaseTransmission = createVar("RateDeseaseTransmission");
+        RateAutoDeposition = createVar("RateAutoDeposition");
         RateAlloDeposition = createVar("RateAlloDeposition");
         LatentPeriod = createVar("LatentPeriod");
         InfectiousPeriod = createVar("InfectiousPeriod");
@@ -99,7 +104,7 @@ virtual void compute(const vd::Time& /*time*/)
     // Quantité d'inoculum primaire (perturbé par modèle Initation)
     InitQuantity = 0;
     
-    /* Réception de spores : /!\ dépendante de la veille (t-1) 
+    /* Réception de spores : dépendante de la veille (t-1) 
      * Géré par 4 variables (pour permettre les perturbations) :
      * In/Out : assurent la connexion entre unités, mappés vers les ports in/out
      * InDeposition/OutDeposition : variables "biologiques", decrit le fonctionnement
@@ -130,6 +135,7 @@ virtual void compute(const vd::Time& /*time*/)
      * Linéaire decroissant : Receptivity = fmax(- 1/1000 * ThermalAge() +1, 0);
      * Linéaire croissant : Receptivity = fmin(1/1000 * ThermalAge() + 0.2, 1.2);
      * Sigmoide : Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2;
+     * R : rho <- function(x, a, b) {1 / (1 + exp(-a * (x - b))) + 0.2}
      * (paramètres : pente, asymptotes (haut et bas), abscisse pt d'inflexion)
      */
     switch (C_Crop) {
@@ -171,7 +177,7 @@ virtual void compute(const vd::Time& /*time*/)
     AreaSenescence = fmin(AreaSenescence(-1) + RateAreaSenescence(),P_AreaMax);
     
     // Vitesse d'infection au sein de l'unité (autodeposition)
-    RateDeseaseTransmission = E_RateDeseaseTransmission * ActionTemp();
+    RateAutoDeposition = E_RateAutoDeposition * ActionTemp();
     
     // Vitesse d'infection entre unités (allodeposition)
     RateAlloDeposition = E_RateAlloDeposition * ActionTemp();
@@ -181,7 +187,7 @@ virtual void compute(const vd::Time& /*time*/)
         AreaHealthy(-1)
         -InitQuantity() 
         +RateAreaExpansion() 
-        -(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
+        -(RateAutoDeposition() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         -(InDeposition() * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         -(RateAreaSenescence() * AreaHealthy(-1)/AreaActive(-1)),0);
         
@@ -189,7 +195,7 @@ virtual void compute(const vd::Time& /*time*/)
     AreaLatent = fmax(
         AreaLatent(-1)
         +InitQuantity() 
-        +(RateDeseaseTransmission() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
+        +(RateAutoDeposition() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         +(InDeposition()* AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         -(1/LatentPeriod() * AreaLatent(-1)) 
         -(RateAreaSenescence() * AreaLatent(-1)/AreaActive(-1)),0);
@@ -233,14 +239,15 @@ virtual void compute(const vd::Time& /*time*/)
         + AreaInfectious() 
         + (1/InfectiousPeriod() * AreaInfectious(-1));
         
-    /* Emission de spores
+    /* Emission de spores totale de l'unité
      * 1. proportion de la surface infectieuse de l'unité
      * 2. réduite par la porosité de l'unité / couvert
      */
     OutDeposition = RateAlloDeposition() * AreaInfectious() * Porosity();
     
-    // Emission, pour être coherent avec la nomenclature In/Out
-    Out = OutDeposition();
+    // Emission de spores pondérée 
+    // C'est reçu par chacun des voisins, donc ce flux est fonction du voisinage sortant
+    Out = OutDeposition() / E_OutDegree;
     
     
 }
@@ -261,7 +268,7 @@ virtual void initValue(const vd::Time& /*time*/)
     ScoreArea = 0.0;
     AreaSenescence = 0.0;
     AreaDeseased = 0.0;
-    RateDeseaseTransmission = E_RateDeseaseTransmission;    
+    RateAutoDeposition = E_RateAutoDeposition;    
     RateAlloDeposition = E_RateAlloDeposition;    
     LatentPeriod = E_LatentPeriod;
     InfectiousPeriod = E_InfectiousPeriod;
@@ -284,20 +291,21 @@ private:
 //@@end:user@@
 
     // Parametres
-    int C_Crop; /**< Paramètre : Type de culture */
-    double P_AreaMax; /**< Paramètre : surface potentielle d'une unité, Unité : m^2 */
-    double P_ExpansionTT; /**< Paramètre : date de demi-expansion de la surface d'une unité */
-    double P_ExpansionSlope; /**< Paramètre : acceleration de l'expansion de la surface d'une unité */    
-    double P_SenescenceTT; /**< Paramètre : date de demi-senescence de la surface d'une unité */
-    double P_SenescenceSlope ; /**< Paramètre : acceleration de la senescence de la surface d'une unité */  
-    double P_ElongationMax; /**< Paramètre : longueur potentielle d'une unité, Unité : m */
-    double P_ElongationSlope ; /**< Paramètre : acceleration de la croissance en hauteur d'une unité */  
-    double P_ElongationTT ; /**< Paramètre : date de demi-elongation d'une unité */  
-    double P_Porosity ; /**< Paramètre : Porosité de l'unité fonctionnelle */  
-    double E_RateDeseaseTransmission; /**< Paramètre : Vitesse de transmission de la maladie */
-    double E_RateAlloDeposition; /**< Paramètre : Modulation du taux d'allodeposition */
-    double E_InfectiousPeriod; /**< Paramètre : durée de la période infectieuse */
-    double E_LatentPeriod; /**< Paramètre : durée de la période de latence */
+    int C_Crop; /** Paramètre : Type de culture */
+    double P_AreaMax; /** Paramètre : surface potentielle d'une unité, Unité : m^2 */
+    double P_ExpansionTT; /** Paramètre : date de demi-expansion de la surface d'une unité */
+    double P_ExpansionSlope; /**<Paramètre : acceleration de l'expansion de la surface d'une unité */    
+    double P_SenescenceTT; /** Paramètre : date de demi-senescence de la surface d'une unité */
+    double P_SenescenceSlope ; /** Paramètre : acceleration de la senescence de la surface d'une unité */  
+    double P_ElongationMax; /** Paramètre : longueur potentielle d'une unité, Unité : m */
+    double P_ElongationSlope ; /** Paramètre : acceleration de la croissance en hauteur d'une unité */  
+    double P_ElongationTT ; /** Paramètre : date de demi-elongation d'une unité */  
+    double P_Porosity ; /** Paramètre : Porosité de l'unité fonctionnelle */  
+    double E_RateAutoDeposition; /** Paramètre : Vitesse de transmission de la maladie */
+    double E_RateAlloDeposition; /** Paramètre : Modulation du taux d'allodeposition */
+    double E_InfectiousPeriod; /** Paramètre : durée de la période infectieuse */
+    double E_LatentPeriod; /** Paramètre : durée de la période de latence */
+    int E_OutDegree; /** Paramètre : nombre de voisins "sortants" */
     
     // Entrées 
     Sync ActionTemp;
@@ -318,7 +326,7 @@ private:
     Var ScoreArea;
     Var AreaSenescence;
     Var AreaDeseased;
-    Var RateDeseaseTransmission;
+    Var RateAutoDeposition;
     Var RateAlloDeposition;
     Var LatentPeriod;
     Var InfectiousPeriod;

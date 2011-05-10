@@ -27,6 +27,7 @@ rvle.setOutputPlugin(f, "vueDebug", "storage")
 ## Paramétrage de GraphTranslator (graphe de connection)
 # graphe : grille 4 voisins 
 A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=n/100, type="lattice")
+#rvle.setIntegerCondition(f, "condParametres", "E_OutDegree", 4)
 
 # graphe construit depuis un voisinage (emission) défini dans une matrice (X)
 X <- matrix(c(0,1, 0,-1, 1,0, -1,0), ncol=2, byrow=T) # 4 voisins

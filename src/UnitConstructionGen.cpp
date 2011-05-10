@@ -335,7 +335,7 @@ public:
             }
         }
         
-        TraceModel(mWaiting);
+        TraceModel(vle::fmt("%1%") % mWaiting);
         
 		if (mAddModel == true and mWaiting == 0) {
 			mPhase = ADDED;

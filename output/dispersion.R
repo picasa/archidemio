@@ -3,7 +3,33 @@ library(ggplot2)
 library(Rgraphviz)
 library(igraph)
 
-source("voisinage.R")
+source("fonctions.R")
+
+## Méthodes pour la génération d'un graphe dynamique : dynamique() & structure()
+
+# 1D
+# dynamique : retourne les dates thermiques d'ajout de noeuds
+dynamique <- function(ttunits = c(70,70,70,50), nbunits = 25) {
+	tt <- NULL
+	for (u in 1:nbunits) {
+		if (u <= length(ttunits)-1) t = u*ttunits[u]
+		else t = sum(ttunits[1:length(ttunits)-1]) + (u-(length(ttunits)-1))*ttunits[length(ttunits)]
+		tt <- c(tt, t) 
+	}
+	return(tt)
+}
+D <- dynamique(nbunits = 30)
+
+# structure : retourne les matrices d'adjacence des graphes
+# voisinage unitaire
+X <- matrix(c(0,1), ncol=2, byrow=T)
+
+# liste de matrice d'adjacence
+A = list()
+for (u in 1:length(D)) {
+	A[[u]] <- voisinage(X, nbcolonne=1, nbligne=u)
+}
+
 
 ## Fonction de dispersion [Scherm1992]
 # en 1D
@@ -77,6 +103,9 @@ D <- as.matrix()
 graph.tree(n, children = 2, mode="out")
 graph.full(n, directed = FALSE, loops = FALSE)
 graph.full.citation(n, directed = TRUE)
+
+G = watts.strogatz.game(dim=1, size=n, nei=4, p=0.01)
+write.graph(G, format="graphml", file="G.graphml")
 
 
 ## Génération de graphes selon un voisinage unitaire
