@@ -21,8 +21,8 @@
  * in the Software.
  */
 
-#ifndef VLE_TRANSLATOR_DYNAMIC_GRAPH_TRANSLATOR_HPP
-#define VLE_TRANSLATOR_DYNAMIC_GRAPH_TRANSLATOR_HPP
+#ifndef ARCHIDEMIO_DYNAMIC_GRAPH_TRANSLATOR_HPP
+#define ARCHIDEMIO_DYNAMIC_GRAPH_TRANSLATOR_HPP
 
 #include <vle/devs/Executive.hpp>
 #include <vle/value/Tuple.hpp>
@@ -30,11 +30,21 @@
 #include <Eigen/Core>
 #include <string>
 
-enum ConnectionTypeOptions {
-    CONNECTION_TYPE_IN_NAMED,
-    CONNECTION_TYPE_NAMED_OUT,
-    CONNECTION_TYPE_IN_OUT,
-    CONNECTION_TYPE_NAMED
+enum ConnectionTypeOptions
+{
+    CONNECTION_TYPE_IN_NAMED, /**< A port \e in is add to the destination
+                                model, a port named by the source model
+                                is added to the source model. */
+    CONNECTION_TYPE_NAMED_OUT, /**< A port named by the source model is added
+                                 to the destination model, a port \e out is
+                                 added to the source model. */
+    CONNECTION_TYPE_IN_OUT, /**< A port \e in is add to the destination model,
+                              a port \e out is added to the destination
+                              model. */
+    CONNECTION_TYPE_NAMED /**< A port named by the source model name is added
+                            to the destination model, a port named by the
+                            destination model name is added to the source
+                            model. */
 };
 
 /**
@@ -81,7 +91,16 @@ public:
      *
      * @return A reference to the adjacency matrix.
      */
-    Eigen::MatrixXd& getMatrix() const;
+    Eigen::MatrixXd getMatrix() const;
+
+    /**
+     * Assign a new adjacency matrix.
+     *
+     * @param matrix The new adjacency matrix.
+     *
+     * @return A reference to the adjacency matrix.
+     */
+    void setMatrix(const Eigen::MatrixXd& matrix);
 
     /**
      * Assign a new connection type.

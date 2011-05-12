@@ -139,9 +139,6 @@ public:
         }
 
         mLst[index] = Node(name, index, classname);
-//        mLst[index].name = name;
-//        mLst[index].index = index;
-//        mLst[index].classname = classname;
     }
 
     iterator begin()
@@ -206,7 +203,7 @@ public:
                     removeConnection(model, i, j);
                 }
             }
-        }        
+        }
     }
 
     ConnectionTypeOptions mConnectionType;
@@ -400,9 +397,17 @@ int DynamicGraphTranslator::getNumber() const
     return mPimpl->mMatrix.cols();
 }
 
-Eigen::MatrixXd& DynamicGraphTranslator::getMatrix() const
+Eigen::MatrixXd DynamicGraphTranslator::getMatrix() const
 {
     return mPimpl->mMatrix;
+}
+
+void DynamicGraphTranslator::setMatrix(const Eigen::MatrixXd& matrix)
+{
+    assert(matrix.cols() != matrix.rows());
+    assert(matrix.cols() == mPimpl->mMatrix.cols());
+
+    mPimpl->mMatrix = matrix;
 }
 
 void DynamicGraphTranslator::setConnectionType(ConnectionTypeOptions type)
