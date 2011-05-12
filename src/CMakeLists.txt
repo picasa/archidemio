@@ -14,8 +14,8 @@ ADD_LIBRARY(CropClimate SHARED CropClimate.cpp)
 ADD_LIBRARY(CropLeafArea SHARED CropLeafArea.cpp)
 ADD_LIBRARY(Unit SHARED Unit.cpp)
 ADD_LIBRARY(Initiation SHARED Initiation.cpp)
-ADD_LIBRARY(Pilote SHARED Pilote.cpp)
-ADD_LIBRARY(UnitConstructionGen SHARED UnitConstructionGen.cpp
+ADD_LIBRARY(Pilote SHARED PiloteNG.cpp)
+ADD_LIBRARY(UnitConstructionGen SHARED UnitConstructionGenNG.cpp
   GraphTranslator.hpp GraphTranslator.cpp)
 ADD_LIBRARY(Connector SHARED Connector.cpp)
 ADD_LIBRARY(CropState SHARED CropState.cpp)

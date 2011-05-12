@@ -81,7 +81,7 @@ public:
      *
      * @return A reference to the adjacency matrix.
      */
-    Eigen::Matrix2d& getMatrix() const;
+    Eigen::MatrixXd& getMatrix() const;
 
     /**
      * Assign a new connection type.

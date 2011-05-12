@@ -24,6 +24,7 @@
 #include "GraphTranslator.hpp"
 #include <vle/utils/Exception.hpp>
 #include <boost/format.hpp>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <set>
@@ -100,6 +101,8 @@ public:
 
         while (it != end()) {
             it->name = (boost::format("%1%-%2%") % prefix % i).str();
+            it->index = i;
+            it->classname.clear();
             it++;
             i++;
         }
@@ -197,20 +200,20 @@ public:
 
         for (int j = 0; j < mMatrix.cols(); ++j) {
             for (int i = 0; i < mMatrix.rows(); ++i) {
-                if (mMatrix(i, j) > 0.0) {
+                if (mMatrix(j, i) > 0.0) {
                     createConnection(model, i, j);
                 } else {
                     removeConnection(model, i, j);
                 }
             }
-        }
+        }        
     }
 
     ConnectionTypeOptions mConnectionType;
     std::string mPrefix;
     std::string mDefaultClassName;
     detail::NodeList mAssociation;
-    Eigen::Matrix2d mMatrix;
+    Eigen::MatrixXd mMatrix;
 
 private:
     void createNode(vle::devs::Executive* model, int index)
@@ -219,13 +222,13 @@ private:
 
         if (model->coupledmodel().findModel(node.getName()) == 0) {
             model->createModelFromClass(
-                node.getName(),
                 node.getClassName().empty() ? mDefaultClassName :
-                node.getClassName());
+                node.getClassName(),
+                node.getName());
         }
     }
 
-    void createConnection(vle::devs::Executive* model, int from, int to)
+    void createConnection(vle::devs::Executive* model, int to, int from)
     {
         switch (mConnectionType) {
         case CONNECTION_TYPE_IN_OUT:
@@ -263,9 +266,10 @@ private:
         }
     }
 
-    void removeConnection(vle::devs::Executive* model, int from, int to)
+    void removeConnection(vle::devs::Executive* model, int to, int from)
     {
-        switch (mConnectionType) {
+/*
+ *        switch (mConnectionType) {
         case CONNECTION_TYPE_IN_OUT:
             model->addOutputPort(mAssociation[from].getName(), "out");
             model->addInputPort(mAssociation[to].getName(), "in");
@@ -299,6 +303,7 @@ private:
                                     mAssociation[from].getName());
             break;
         }
+        */
     }
 
     void init(const vle::value::Map& buffer)
@@ -345,7 +350,7 @@ private:
 
         if (init.exist("default classname")) {
             mDefaultClassName =
-                vle::value::toString(init.get("default-classname"));
+                vle::value::toString(init.get("default classname"));
         }
 
         if (init.exist("nodes")) {
@@ -395,7 +400,7 @@ int DynamicGraphTranslator::getNumber() const
     return mPimpl->mMatrix.cols();
 }
 
-Eigen::Matrix2d& DynamicGraphTranslator::getMatrix() const
+Eigen::MatrixXd& DynamicGraphTranslator::getMatrix() const
 {
     return mPimpl->mMatrix;
 }
