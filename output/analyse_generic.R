@@ -44,8 +44,20 @@ sim.l<-rvle.shape(sim, view="debug")
 ## couche objet (ok pour optimisation)
 f <- new("Rvle", file = "2D_0.8_NG.vpz", pkg = "archidemio")	
 
+# Ce qu'il faut faire si veut modifier les condition de simulation
+# TODO Cf. Bug patrak pour les condition Tuples
+run(f, 
+	condParametres.E_GridMatrix = as.vector(A),
+	condParametres.E_GridNumber = n,
+	condParametres.E_InitSpace = 10
+)
+
+
 # Simulation ScoreArea (11s pour 20x20)
 #system.time(sim.l<-rvle.sim(f, nExec=n, nVarNormal=2, nVarExec=12, view="debug")) # ! si n > 400
+system.time(f<-run(f))
+rvle.shape(f, nExec=n, index="time", view="sensitivity")
+
 system.time(sim.l<-rvle.sim(f, nExec=n, nVarExec=1, index="time", view="sensitivity"))
 
 

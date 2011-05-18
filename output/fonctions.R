@@ -325,6 +325,7 @@ getPlanSobol <- function(factors,  bounds, n, order = 1, nboot = 0, conf = 0.95)
 
 ## rvle.addPlanCondition : Ajouter le plan défini à la condition du modèle.
 ## /!\ fonctionne seulement pour des conditions de reels.
+## TODO : creer une liste pour un usage avec run(object, liste)
 rvle.addPlanCondition <- function(self, condition, plan=f.plan, factors) {
 	for (p in factors) {
 		rvle.clearConditionPort(self, condition, p)
