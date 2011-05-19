@@ -20,19 +20,19 @@ HLIR = c("AreaHealthy","AreaLatent","AreaInfectious","AreaRemoved")
 n=100 # sqrt(n) doit être entier
 
 ## couche classique (ok pour exploration)
-f <- rvle.open("2D_0.8_NG.vpz", "archidemio")
+f <- rvle.open("2D_0.8.vpz", "archidemio")
 rvle.setOutputPlugin(f, "vueSensitivity", "dummy")
 rvle.setOutputPlugin(f, "vueDebug", "storage")
 
 ## Paramétrage de GraphTranslator (graphe de connection)
 # graphe : grille 4 voisins 
-A <- rvle.setTranslatorNG(f, condition="condParametres", class="Unit", n, init=1, type="lattice")
+A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=1, type="lattice")
 #rvle.setIntegerCondition(f, "condParametres", "E_OutDegree", 4)
 
 # graphe construit depuis un voisinage (emission) défini dans une matrice (X)
 X <- matrix(c(0,1, 0,-1, 1,0, -1,0), ncol=2, byrow=T) # 4 voisins
 X <- matrix(c(1,0, 1,-1, 0,-1, -1,-1, -1,0, -1,1, 0,1, 1,1), ncol=2,byrow=TRUE) # 8 Voisins
-A <- rvle.setTranslatorNG(f, condition="condParametres", class="Unit", n, init=1, type="custom", neighbour=X)
+A <- rvle.setTranslator(f, condition="condParametres", class="Unit", n, init=1, type="custom", neighbour=X)
 #rvle.save(f, "2D_0.8_IA.vpz")
 
 # Simulation
@@ -42,7 +42,7 @@ sim.l<-rvle.shape(sim, view="debug")
 
 
 ## couche objet (ok pour optimisation)
-f <- new("Rvle", file = "2D_0.8_NG.vpz", pkg = "archidemio")	
+f <- new("Rvle", file = "2D_0.8.vpz", pkg = "archidemio")	
 
 # Ce qu'il faut faire si veut modifier les condition de simulation
 # TODO Cf. Bug patrak pour les condition Tuples

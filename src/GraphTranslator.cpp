@@ -404,7 +404,7 @@ Eigen::MatrixXd DynamicGraphTranslator::getMatrix() const
 
 void DynamicGraphTranslator::setMatrix(const Eigen::MatrixXd& matrix)
 {
-    assert(matrix.cols() != matrix.rows());
+    assert(matrix.cols() == matrix.rows());
     assert(matrix.cols() == mPimpl->mMatrix.cols());
 
     mPimpl->mMatrix = matrix;

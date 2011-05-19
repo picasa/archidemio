@@ -1,6 +1,6 @@
 #include <vle/devs/Executive.hpp>
 #include <vle/devs/ExecutiveDbg.hpp>
-#include <vle/translator/GraphTranslator.hpp>
+#include "GraphTranslator.hpp"
 #include <vle/utils.hpp>
 #include <vle/devs.hpp>
 #include <vle/vpz.hpp>
@@ -358,8 +358,13 @@ public:
 	void etape1()
 	{		
 	// Creation des modèles           
-        vle::translator::GraphTranslator tr (*this);
-        tr.translate(*mParameter);
+        DynamicGraphTranslator tr (*mParameter);
+	
+	Eigen::MatrixXd A = tr.getMatrix();
+	
+	tr.setMatrix(A);
+	
+        tr.build(this);
 		
 	// Boucle pour creer les connexions 
 	mNumber = mParameter->getInt("number");
@@ -401,6 +406,7 @@ public:
 		removeConnection("Buffer", "ActionTemp", current, "ActionTemp");
 		removeConnection("Buffer", "TempEff", current, "TempEff");
 	    }
+
 				
 	std::ofstream file("output.vpz");
         dump(file);		

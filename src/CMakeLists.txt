@@ -15,7 +15,7 @@ ADD_LIBRARY(CropLeafArea SHARED CropLeafArea.cpp)
 ADD_LIBRARY(Unit SHARED Unit.cpp)
 ADD_LIBRARY(Initiation SHARED Initiation.cpp)
 ADD_LIBRARY(Pilote SHARED PiloteNG.cpp)
-ADD_LIBRARY(UnitConstructionGen SHARED UnitConstructionGenNG.cpp
+ADD_LIBRARY(Constructor SHARED Constructor.cpp
   GraphTranslator.hpp GraphTranslator.cpp)
 ADD_LIBRARY(Connector SHARED Connector.cpp)
 ADD_LIBRARY(CropState SHARED CropState.cpp)
@@ -41,7 +41,7 @@ TARGET_LINK_LIBRARIES(Unit
  TARGET_LINK_LIBRARIES(Pilote
   ${VLE_LIBRARIES}
   ${Boost_LIBRARIES})
- TARGET_LINK_LIBRARIES(UnitConstructionGen
+ TARGET_LINK_LIBRARIES(Constructor
   ${VLE_LIBRARIES}
   ${Boost_LIBRARIES})
  TARGET_LINK_LIBRARIES(Connector
@@ -79,7 +79,7 @@ INSTALL(TARGETS Pilote
   RUNTIME DESTINATION lib
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
-INSTALL(TARGETS UnitConstructionGen
+INSTALL(TARGETS Constructor
   RUNTIME DESTINATION lib
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
