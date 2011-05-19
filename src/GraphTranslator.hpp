@@ -25,7 +25,6 @@
 #define ARCHIDEMIO_DYNAMIC_GRAPH_TRANSLATOR_HPP
 
 #include <vle/devs/Executive.hpp>
-#include <vle/value/Tuple.hpp>
 #include <vle/value/Map.hpp>
 #include <eigen2/Eigen/Core>
 #include <string>
@@ -47,6 +46,31 @@ enum ConnectionTypeOptions
                             model. */
 };
 
+struct Connection
+{
+    Connection();
+
+    Connection(const Connection& other);
+
+    Connection(const std::string& modelSource,
+               const std::string& portSource,
+               const std::string& modelDestination,
+               const std::string& portDestination);
+
+    ~Connection();
+
+    Connection& operator=(const Connection& other);
+
+    std::string modelSource;
+    std::string portSource;
+    std::string modelDestination;
+    std::string portDestination;
+};
+
+typedef std::vector < std::string > ModelNameList;
+
+typedef std::vector < Connection > ConnectionList;
+
 /**
  * @todo
  * @code
@@ -58,10 +82,13 @@ enum ConnectionTypeOptions
  * tr.setDefaultClassName("default");
  * tr.setClassName(0, "special_A");
  * tr.setClassName(1, "special_B");
- * tr.getMatrix().setZero(3, 3);
- * tr.getMatrix()(0, 1) = 1.0;
- * tr.getMatrix()(0, 2) = 1.0;
- * tr.getMatrix()(1, 2) = 1.0;
+ *
+ * Eigen::MatrixXd m = tr.getMatrix();
+ * m.setZero(3, 3);
+ * m()(0, 1) = 1.0;
+ * m()(0, 2) = 1.0;
+ * m()(1, 2) = 1.0;
+ * tr.setMatrix(m);
  *
  * tr.build(this); // instantiate the models from classes.
  *
@@ -147,14 +174,48 @@ public:
     std::string getDefaultClassName() const;
 
     /**
-     * Build the DEVS world. All the node are translated into devs::AtomicModel
-     * or devs::CoupledModel using the class definition.
+     * Build the DEVS world.
+     *
+     * All the node are translated into devs::AtomicModel or devs::CoupledModel
+     * using the class definition.
      *
      * @todo Check if connection exists / if we need to delete conenction
      *
      * @param model A pointer to the DEVS world.
      */
     void build(vle::devs::Executive* model);
+
+    /**
+     * @brief Get the list of new models between two calls to the member
+     * function \e build().
+     *
+     * @param list
+     */
+    void getNewModel(ModelNameList* list) const;
+
+    /**
+     * @brief Get the list of deleted models between two calls to the member
+     * function \e build().
+     *
+     * @param list
+     */
+    void getDeletedModel(ModelNameList* list) const;
+
+    /**
+     * @brief Get the list of new connection between two call to the member
+     * function \e build().
+     *
+     * @param list
+     */
+    void getNewConnection(ConnectionList* list) const;
+
+    /**
+     * @brief Get the list of deleted connections between two call to the
+     * member function \e build().
+     *
+     * @param list
+     */
+    void getDeletedConnection(ConnectionList* list) const;
 
 private:
     DynamicGraphTranslator(const DynamicGraphTranslator&);

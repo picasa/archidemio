@@ -174,6 +174,55 @@ private:
 
 /*
  *
+ * Connection implementation
+ *
+ */
+
+Connection::Connection() :
+    modelSource(),
+    portSource(),
+    modelDestination(),
+    portDestination()
+{
+}
+
+Connection::Connection(const std::string& modelSource,
+                       const std::string& portSource,
+                       const std::string& modelDestination,
+                       const std::string& portDestination) :
+    modelSource(modelSource),
+    portSource(portSource),
+    modelDestination(modelDestination),
+    portDestination(portDestination)
+{
+}
+
+Connection::Connection(const Connection& other) :
+    modelSource(other.modelSource),
+    portSource(other.portSource),
+    modelDestination(other.modelDestination),
+    portDestination(other.portDestination)
+{
+}
+
+Connection::~Connection()
+{
+}
+
+Connection& Connection::operator=(const Connection& other)
+{
+    Connection tmp(other);
+
+    std::swap(modelSource, tmp.modelSource);
+    std::swap(portSource, tmp.portSource);
+    std::swap(modelDestination, tmp.modelDestination);
+    std::swap(portDestination, tmp.portDestination);
+
+    return *this;
+}
+
+/*
+ *
  * DynamicGraphTranslator implementation
  *
  */
@@ -191,28 +240,54 @@ public:
 
     void build(vle::devs::Executive* model)
     {
-        for (int i = 0; i < mMatrix.rows(); ++i) {
-            createNode(model, i);
+        reinit();
+
+        assert(mCacheMatrix.rows() == mCacheMatrix.cols());
+        assert(mCacheMatrix.rows() >= mCurrentMatrix.rows());
+
+        if (mCacheMatrix.rows() > mCurrentMatrix.rows()) {
+            for (int i = mCacheMatrix.rows() - mCurrentMatrix.rows();
+                 i < mCacheMatrix.rows(); ++i) {
+                createNode(model, i);
+            }
         }
 
-        for (int j = 0; j < mMatrix.cols(); ++j) {
-            for (int i = 0; i < mMatrix.rows(); ++i) {
-                if (mMatrix(j, i) > 0.0) {
-                    createConnection(model, i, j);
-                } else {
-                    removeConnection(model, i, j);
+        for (int j = 0; j < mCacheMatrix.cols(); ++j) {
+            for (int i = 0; i < mCacheMatrix.rows(); ++i) {
+                if (i > mCurrentMatrix.rows() or mCacheMatrix(j, i) !=
+                    mCurrentMatrix(j, i)) {
+                    if (mCacheMatrix(j, i) != 0.0) {
+                        createConnection(model, i, j);
+                    } else {
+                        removeConnection(model, i, j);
+                    }
                 }
             }
         }
+
+        mCurrentMatrix = mCacheMatrix;
     }
 
     ConnectionTypeOptions mConnectionType;
     std::string mPrefix;
     std::string mDefaultClassName;
     detail::NodeList mAssociation;
-    Eigen::MatrixXd mMatrix;
+    Eigen::MatrixXd mCurrentMatrix;
+    Eigen::MatrixXd mCacheMatrix;
+    ConnectionList mNewConnection;
+    ConnectionList mDeletedConnection;
+    ModelNameList mNewModel;
+    ModelNameList mDeletedModel;
 
 private:
+    void reinit()
+    {
+        mNewConnection.clear();
+        mDeletedModel.clear();
+        mNewModel.clear();
+        mDeletedModel.clear();
+    }
+
     void createNode(vle::devs::Executive* model, int index)
     {
         const detail::Node& node = mAssociation[index];
@@ -222,6 +297,17 @@ private:
                 node.getClassName().empty() ? mDefaultClassName :
                 node.getClassName(),
                 node.getName());
+            mNewModel.push_back(node.getName());
+        }
+    }
+
+    void removeNode(vle::devs::Executive* model, int index)
+    {
+        const detail::Node& node = mAssociation[index];
+
+        if (model->coupledmodel().findModel(node.getName()) != 0) {
+            model->delModel(node.getName());
+            mDeletedModel.push_back(node.getName());
         }
     }
 
@@ -233,6 +319,12 @@ private:
             model->addInputPort(mAssociation[to].getName(), "in");
             model->addConnection(mAssociation[from].getName(), "out",
                                  mAssociation[to].getName(), "in");
+
+            mNewConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            "out",
+                            mAssociation[to].getName(),
+                            "in"));
             break;
         case CONNECTION_TYPE_IN_NAMED:
             model->addOutputPort(mAssociation[from].getName(),
@@ -241,6 +333,12 @@ private:
             model->addConnection(mAssociation[from].getName(),
                                  mAssociation[to].getName(),
                                  mAssociation[to].getName(), "in");
+
+            mNewConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            mAssociation[to].getName(),
+                            mAssociation[to].getName(),
+                            "in"));
             break;
         case CONNECTION_TYPE_NAMED_OUT:
             model->addOutputPort(mAssociation[from].getName(), "out");
@@ -249,6 +347,12 @@ private:
             model->addConnection(mAssociation[from].getName(), "out",
                                  mAssociation[to].getName(),
                                  mAssociation[from].getName());
+
+            mNewConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            "out",
+                            mAssociation[to].getName(),
+                            mAssociation[from].getName()));
             break;
         case CONNECTION_TYPE_NAMED:
             model->addOutputPort(mAssociation[from].getName(),
@@ -259,48 +363,76 @@ private:
                                  mAssociation[to].getName(),
                                  mAssociation[to].getName(),
                                  mAssociation[from].getName());
+
+            mNewConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            mAssociation[to].getName(),
+                            mAssociation[to].getName(),
+                            mAssociation[from].getName()));
             break;
         }
     }
 
     void removeConnection(vle::devs::Executive* model, int to, int from)
     {
-/*
- *        switch (mConnectionType) {
+        switch (mConnectionType) {
         case CONNECTION_TYPE_IN_OUT:
-            model->addOutputPort(mAssociation[from].getName(), "out");
-            model->addInputPort(mAssociation[to].getName(), "in");
             model->removeConnection(mAssociation[from].getName(), "out",
                                     mAssociation[to].getName(), "in");
+            model->removeOutputPort(mAssociation[from].getName(), "out");
+            model->removeInputPort(mAssociation[to].getName(), "in");
+
+            mDeletedConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            "out",
+                            mAssociation[to].getName(),
+                            "in"));
             break;
         case CONNECTION_TYPE_IN_NAMED:
-            model->addOutputPort(mAssociation[from].getName(),
-                                 mAssociation[to].getName());
-            model->addInputPort(mAssociation[to].getName(), "in");
             model->removeConnection(mAssociation[from].getName(),
                                     mAssociation[to].getName(),
                                     mAssociation[to].getName(), "in");
+            model->removeOutputPort(mAssociation[from].getName(),
+                                    mAssociation[to].getName());
+            model->removeInputPort(mAssociation[to].getName(), "in");
+
+            mDeletedConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            mAssociation[to].getName(),
+                            mAssociation[to].getName(),
+                            "in"));
             break;
         case CONNECTION_TYPE_NAMED_OUT:
-            model->addOutputPort(mAssociation[from].getName(), "out");
-            model->addInputPort(mAssociation[to].getName(),
-                                mAssociation[from].getName());
             model->removeConnection(mAssociation[from].getName(), "out",
                                     mAssociation[to].getName(),
                                     mAssociation[from].getName());
+            model->removeOutputPort(mAssociation[from].getName(), "out");
+            model->removeInputPort(mAssociation[to].getName(),
+                                   mAssociation[from].getName());
+
+            mDeletedConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            "out",
+                            mAssociation[to].getName(),
+                            mAssociation[from].getName()));
             break;
         case CONNECTION_TYPE_NAMED:
-            model->addOutputPort(mAssociation[from].getName(),
-                                 mAssociation[to].getName());
-            model->addInputPort(mAssociation[to].getName(),
-                                mAssociation[from].getName());
             model->removeConnection(mAssociation[from].getName(),
                                     mAssociation[to].getName(),
                                     mAssociation[to].getName(),
                                     mAssociation[from].getName());
+            model->removeOutputPort(mAssociation[from].getName(),
+                                    mAssociation[to].getName());
+            model->removeInputPort(mAssociation[to].getName(),
+                                   mAssociation[from].getName());
+
+            mDeletedConnection.push_back(
+                Connection(mAssociation[from].getName(),
+                            mAssociation[to].getName(),
+                            mAssociation[to].getName(),
+                            mAssociation[from].getName()));
             break;
         }
-        */
     }
 
     void init(const vle::value::Map& buffer)
@@ -311,7 +443,8 @@ private:
         if (nodeNumber <= 0) {
             throw vle::utils::ArgError("GraphTranslator: bad node number");
         } else {
-            mMatrix.resize(nodeNumber, nodeNumber);
+            mCurrentMatrix.resize(0, 0);
+            mCacheMatrix.resize(nodeNumber, nodeNumber);
             mAssociation.resize(mPrefix, nodeNumber);
         }
 
@@ -338,12 +471,13 @@ private:
         const vle::value::TupleValue adjmat =
             vle::value::toTuple(init.get("adjacency matrix"));
 
-        if ((int)adjmat.size() != mMatrix.cols() * mMatrix.rows()) {
+        if ((int)adjmat.size() != mCacheMatrix.cols() * mCacheMatrix.rows()) {
             throw vle::utils::ArgError(
                 "GraphTranslator: problem in number of node");
         }
 
-        std::copy(adjmat.begin(), adjmat.end(), mMatrix.data());
+        std::copy(adjmat.begin(), adjmat.end(), mCacheMatrix.data());
+        mCurrentMatrix = mCacheMatrix;
 
         if (init.exist("default classname")) {
             mDefaultClassName =
@@ -374,12 +508,6 @@ private:
     }
 };
 
-/*
- *
- * implementation of DynamicGraphTranslator
- *
- */
-
 DynamicGraphTranslator::DynamicGraphTranslator(const vle::value::Map& buffer)
     : mPimpl(new DynamicGraphTranslator::Pimpl(buffer))
 {
@@ -392,22 +520,23 @@ DynamicGraphTranslator::~DynamicGraphTranslator()
 
 int DynamicGraphTranslator::getNumber() const
 {
-    assert(mPimpl->mMatrix.cols() == mPimpl->mMatrix.rows());
+    assert(mPimpl->mCacheMatrix.cols() == mPimpl->mCacheMatrix.rows());
 
-    return mPimpl->mMatrix.cols();
+    return mPimpl->mCacheMatrix.cols();
 }
 
 Eigen::MatrixXd DynamicGraphTranslator::getMatrix() const
 {
-    return mPimpl->mMatrix;
+    return mPimpl->mCacheMatrix;
 }
 
 void DynamicGraphTranslator::setMatrix(const Eigen::MatrixXd& matrix)
 {
     assert(matrix.cols() == matrix.rows());
-    assert(matrix.cols() == mPimpl->mMatrix.cols());
+    assert(matrix.cols() == mPimpl->mCacheMatrix.cols());
+    assert(matrix.cols() >= mPimpl->mCurrentMatrix.cols());
 
-    mPimpl->mMatrix = matrix;
+    mPimpl->mCacheMatrix = matrix;
 }
 
 void DynamicGraphTranslator::setConnectionType(ConnectionTypeOptions type)
@@ -449,5 +578,41 @@ void DynamicGraphTranslator::build(vle::devs::Executive* model)
     assert(model);
 
     mPimpl->build(model);
+}
+
+void DynamicGraphTranslator::getNewModel(ModelNameList* list) const
+{
+    list->resize(mPimpl->mNewModel.size());
+
+    std::copy(mPimpl->mNewModel.begin(),
+              mPimpl->mNewModel.end(),
+              list->begin());
+}
+
+void DynamicGraphTranslator::getDeletedModel(ModelNameList* list) const
+{
+    list->resize(mPimpl->mDeletedModel.size());
+
+    std::copy(mPimpl->mDeletedModel.begin(),
+              mPimpl->mDeletedModel.end(),
+              list->begin());
+}
+
+void DynamicGraphTranslator::getNewConnection(ConnectionList* list) const
+{
+    list->resize(mPimpl->mNewConnection.size());
+
+    std::copy(mPimpl->mNewConnection.begin(),
+              mPimpl->mNewConnection.end(),
+              list->begin());
+}
+
+void DynamicGraphTranslator::getDeletedConnection(ConnectionList* list) const
+{
+    list->resize(mPimpl->mDeletedConnection.size());
+
+    std::copy(mPimpl->mDeletedConnection.begin(),
+              mPimpl->mDeletedConnection.end(),
+              list->begin());
 }
 
