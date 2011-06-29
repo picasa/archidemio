@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.0.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="862" height="509"  >
+<model name="Top model" type="coupled" x="0" y="0" width="1206" height="594"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="35" y="45" width="100" height="120" >
 <out>
@@ -162,7 +162,7 @@
 </dynamics>
 <classes>
 <class name="Unit" >
-<model name="Unit" type="coupled" width="805" height="398"  >
+<model name="Unit" type="coupled" width="736" height="514"  >
 <in>
  <port name="ActionTemp" />
  <port name="TempEff" />

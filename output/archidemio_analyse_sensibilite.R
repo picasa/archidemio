@@ -30,7 +30,7 @@ factors.name <- c(
 	"E_RateAlloDeposition",
 	"E_InitQuantity",
 	"E_LatentPeriod",
-	"P_UnitTTSen",
+	"P_SenescenceTT",
 	"E_TempOpt"
 )
 
@@ -53,7 +53,7 @@ f.as <- getPlanSobol(factors, bounds, n=300)
 f.plan <- getPlanLHS(factors, bounds, n=1000)
 
 # Mise en place dans VLE
-f <- rvle.open("1D_0.8.vpz", "archidemio")
+f <- rvle.open("1D_0.9.vpz", "archidemio")
 
 # changer le plugin de sortie (vueDebug : 12 variables d'état, vueSensitivity : 1 variable d'état)
 rvle.setOutputPlugin(f, "vueSensitivity", "storage")
@@ -68,7 +68,7 @@ rvle.setLinearCombination(f,1,1) 	# Linéaire
 
 
 ## 2. Simulation (~ 8 sim/s)
-# rvle.save(f, "plan.vpz") 
+# rvle.save(f, "output.vpz") 
 # La simulation depuis ce vpz permet de générer les vpz unitaires
 # vle -m -l -o 2 -z -P archidemio plan.vpz
 system.time(d <- rvle.runManagerThread(f,2))

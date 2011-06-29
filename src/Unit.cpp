@@ -42,7 +42,9 @@ public:
        const vd::InitEventList& events)
         : ve::DifferenceEquation::Multiple(atom, events)
     {
-        // Parametres 
+        // Parametres
+        // exemple de tests sur la presence de la valeur des paramètres paquet 2CV
+        // = (events.getInt("C_Crop") =! NULL) ? events.getInt("C_Crop"):1 
         C_Crop = events.getInt("C_Crop");
         P_AreaMax = events.getDouble("P_AreaMax");
         P_ExpansionTT = events.getDouble("P_ExpansionTT");

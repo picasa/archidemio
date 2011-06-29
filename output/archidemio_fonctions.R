@@ -2,63 +2,6 @@
 library(reshape)
 library(rvle)
 
-
-#### Extensions à Rvle, mise en forme ####
-## rvle.sim() : simuler et indexer les données produites par un modèle VLE
-rvle.sim <- function (
-	object,			# pointeur vers le modèle VLE
-	index = c("time","Top.model.Crop.CropPhenology.ThermalTime"),	# variables d'index temporels
-	nVarNormal = 2, # variables non Executive (sans les index de temps)
-	nVarExec = 11,	# variables observées par modèle Executive
-	nExec = n,		# nombre de modèles créés par Executive
-	resume = FALSE,	# résume les sorties pour effectuer une analyse de sensibilité
-	view = "debug"
-	) {
-	# durée de la simulation, attention que des variables soient bien observées sur cette durée 
-	simLength=rvle.getDuration(object@sim) + 1
-	
-	# 1 seule simulation 
-	object <- run(object)
-	sim <- as.data.frame(object@outlist) 
-	
-	# remplacer le code de date pour time
-	sim$time <- 1:simLength
-	
-	if (view=="debug") {
-		m <- melt(sim, id=index) 
-		unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
-		scale <- c(rep("crop",nVarNormal*simLength), rep("unit", simLength*nVarExec*nExec))
-		# Tout rassembler dans un dataframe
-		d <- data.frame(
-			time=m$time,
-			ThermalTime=m$Top.model.Crop.CropPhenology.ThermalTime, 
-			scale=as.factor(scale), 
-			variable=sub(".*\\.","", m$variable), 
-			unit=as.factor(unit), 
-			value=m$value
-		)
-	}
-	
-	if (view=="sensitivity") {
-		m <- melt(sim, id="time") 
-		unit <- c(rep(rep(1:nExec, each=simLength), each=1)) 
-		# Tout rassembler dans un dataframe
-		d <- data.frame(
-			time=m$time,
-			variable=sub(".*\\.","", m$variable), 
-			unit=as.factor(unit), 
-			value=m$value
-		)	
-	}
-	
-	# Fonction de post-traitement pour résumer les sorties
-	if (resume == TRUE) {
-		# somme de la colonne value
-		r <-  sum(d$value, na.rm=TRUE)
-		return(r)
-	} else return(d)
-}
-
 ## rvle.shape() : indexer les données produites par un modèle VLE
 rvle.shape <- function (
 	object,			# Objet de classe "rvle", après run
@@ -136,8 +79,7 @@ rvle.getAllConditionPortValues <- function(self, condition) {
 
  
 
-## rvle.setTranslatorNG() : attribue des conditions pour l'extension GraphTranslator à un objet VLE
-
+## rvle.setTranslator() : attribue des conditions pour l'extension GraphTranslator à un objet VLE
 rvle.setTranslator <- function (
 	object, condition, class, n, init, type="lattice", 
 	neighbour=matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE) # 4 voisins
@@ -193,7 +135,6 @@ rvle.setTranslator <- function (
 
 
 #### Analyse de sensibilité ####
-
 ### lhs2bounds : Transformer un plan linéaire centré en un plan entre deux bornes
 lhs2bounds <- function (M, bounds, factors) {
     mat = matrix(rep(bounds$min, rep(nrow(M), ncol(M))), 
@@ -272,7 +213,7 @@ getPlanSobol <- function(factors,  bounds, n, order = 1, nboot = 0, conf = 0.95)
 ## rvle.addPlanCondition : Ajouter le plan défini à la condition du modèle.
 ## /!\ fonctionne seulement pour des conditions de reels.
 ## TODO : creer une liste pour un usage avec run(object, liste)
-rvle.addPlanCondition <- function(self, condition, plan=f.plan, factors) {
+rvle.addPlanCondition <- function(self, condition, plan, factors) {
 	for (p in factors) {
 		rvle.clearConditionPort(self, condition, p)
 		lapply(plan[,p], function(value) {rvle.addRealCondition(self, condition, p, value)})

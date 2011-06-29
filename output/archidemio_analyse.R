@@ -31,8 +31,8 @@ sim <- rvle.run(f)
 sim.l <- rvle.shape(sim, nExec=28, nVarNormal=2, nVarExec=12)
 
 # Objet
-f <- new("Rvle", file = "1D_0.8.vpz", pkg = "archidemio")	# classe
-sim.l<-rvle.sim(f, nExec=24, nVarNormal=2, nVarExec=12)
+f <- new("Rvle", file = "1D_0.9.vpz", pkg = "archidemio")	# classe
+sim.l<-rvle.sim(f, nExec=28, nVarNormal=2, nVarExec=12)
 
 #### Graphiques
 ### Dynamiques des variables f(temps)
@@ -413,24 +413,36 @@ sim.l <- rvle.shape(f)
 
 			
 ### Analyse simple : un seul paramètre à la fois
-f <- rvle.open("1D_0.7.vpz", "archidemio")
+## Classique
+f <- rvle.open("1D_0.9.vpz", "archidemio")
 
 rvle.setRealCondition(f, "condParametres", "E_InitQuantity", 0.01)
 rvle.setRealCondition(f, "condParametres", "E_InfectiousPeriod", 5)
 rvle.setRealCondition(f, "condParametres", "E_RateAlloDeposition", 0.6)
-
 rvle.setRealCondition(f, "condParametres", "P_AreaMax", 2.0)
 # rvle.getAllConditionPortValues(f, "condParametres")
 
+sim <- rvle.run(f)
+sim.l <- rvle.shape(sim, nExec=28, nVarNormal=2, nVarExec=12)
+
+## Objet
+f <- new("Rvle", file = "1D_0.9.vpz", pkg="archidemio")
+
+f <- run(f, condParametres.E_InitTime = 20)
+
+sim.l <- rvle.shape(f, nExec=28, nVarNormal=2, nVarExec=12)
+
+xyplot(value ~ time, data=sim.l, subset=variable=="LAI", type="l" )
+
+
 
 ### Graphique génériques
-sim.l<-rvle.sim(f, nExec=25, nVarNormal=2, nVarExec=12)
-
 trellis.par.set(
-	superpose.line=list(col=topo.colors(25)), 
-	superpose.symbol=list(col=topo.colors(25))
+	superpose.line=list(col=topo.colors(28)), 
+	superpose.symbol=list(col=topo.colors(28))
 )
 
+xyplot(value ~ time, data=sim.l, subset=variable=="LAI", type="l" )
 
 xyplot(value ~ time | variable, groups=unit, data=sim.l, 
 	subset=scale=="unit", scale="free", type="l", col=topo.colors(25),
@@ -467,6 +479,22 @@ na.omit(x[x$value > 0.01,])
 na.omit(x[x$value < 0,])
 
 
+### Analyse simple : un plan d'expérience simple
+# modèle
+f <- rvle.open("1D_0.9.vpz", "archidemio")
+# modification de la condition
+rvle.clearConditionPort(f, "condParametres", "E_InitTime")
+lapply(seq(10,50, by=5), function(value) {rvle.addRealCondition(f, "condParametres", "E_InitTime", value)})
+
+
+# rvle.save(f, "output.vpz")
+# rvle.getAllConditionPortValues(f, "condParametres")
+
+sim <- rvle.run(f)
+sim.l <- rvle.shape(sim, nExec=28, nVarNormal=2, nVarExec=12)
+
+
+system.time(d <- rvle.runManagerThread(f,2))
 
 ########################################################################
 # Etudes variables individuelles, construction du modèle
