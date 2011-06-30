@@ -2,13 +2,16 @@
 library(reshape)
 library(rvle)
 
+
+
+
 ## rvle.shape() : indexer les données produites par un modèle VLE
 rvle.shape <- function (
 	object,			# Objet de classe "rvle", après run
 	index = c("time","Top.model.Crop.CropPhenology.ThermalTime"),	# variables d'index temporels
 	nVarNormal = 2, # variables non Executive (sans les index de temps)
 	nVarExec = 12,	# variables observées par modèle Executive
-	nExec = n,		# nombre de modèles créés par Executive
+	nExec,			# nombre de modèles créés par Executive
 	view = "debug"  # nom de la vue active dans le modèle
 	) {
 	
@@ -64,6 +67,7 @@ rvle.shape <- function (
 
 ## rvle.getAllConditionPortValues() : Obtenir les valeurs nominales des paramètres
 ## TODO : Adapter aux vpz contenant un plan linéaire.
+## TODO : Adapter à rvle-OO
 rvle.getAllConditionPortValues <- function(self, condition) {
 	stopifnot(is.rvle(self))
     stopifnot(is.character(condition))
