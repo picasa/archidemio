@@ -3,8 +3,6 @@ library(reshape)
 library(rvle)
 
 
-
-
 ## rvle.shape() : indexer les données produites par un modèle VLE
 rvle.shape <- function (
 	object,			# Objet de classe "rvle", après run
