@@ -33,10 +33,10 @@ virtual void compute(const vd::Time& /*time*/)
     LAI = CropAreaActive() * C_Density;
     
     // Indice relatif de surface foliaire : indication de l'état de dev de la culture
-    //RLAI = CropAreaActive() / P_AreaMax;
+    // RLAI = CropAreaActive() / P_AreaMax;
     
     // Surface totale atteinte par le pathogène (infectée, infectieuse, détruite)
-    //CropDeseased = AreaDeseased();
+    // CropDeseased = AreaDeseased();
     
      
 
