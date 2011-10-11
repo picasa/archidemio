@@ -27,7 +27,7 @@
 
 
 find_path(Eigen2_INCLUDE_DIR
-  NAMES Eigen/Eigen
+  NAMES Eigen
   PATHS /usr/include/eigen2/Eigen /usr/include/eigen2)
 
 set(Eigen2_INCLUDE_DIRS ${Eigen2_INCLUDE_DIR})

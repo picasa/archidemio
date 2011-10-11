@@ -227,24 +227,13 @@ rvle.addPlanCondition <- function(self, condition, plan, factors) {
 # TODO : une seule méthode selon le type de modèle (plus de particularité pour graphe dynamique)
 compute.output <- function (plan, data, type="1D") {
 	
-	if (type == "1D") {
-		# Mise en forme des données brutes de simulation 1D
-		d.long <- lapply(data, melt, id=c("time","Top model,Crop:CropPhenology.ThermalTime"))
-		
-		# Résumé des données brutes : intégration sur la durée de simulation et sur les instances
-		y=NULL
-		for (i in 1:length(d.long)) {
-			y=c(y, sum(d.long[[i]]$value, na.rm=T))
-		}
-	} else {
-		# Mise en forme
-		d.long <- lapply(data, melt, id="time")
-		
-		# Intégration
-		y=NULL
-		for (i in 1:length(d.long)) {
-			y=c(y, sum(d.long[[i]]$value, na.rm=T))
-		}
+	# Mise en forme
+	d.long <- lapply(data, melt, id="time")
+	
+	# Intégration
+	y=NULL
+	for (i in 1:length(d.long)) {
+		y=c(y, sum(d.long[[i]]$value, na.rm=T))
 	}
 	
 	# Construction d'un objet contenant le plan d'expérience (X) et la réponse du modèle

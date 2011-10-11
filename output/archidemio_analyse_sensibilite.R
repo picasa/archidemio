@@ -11,7 +11,7 @@ library(igraph)
 library(Cairo)
 
 ### Fonctions de simulation & Paramétrage
-source("fonctions.R")
+source("archidemio_fonctions.R")
 #rvle.getDuration(f)
 
 ### Sensibilité : plutôt utiliser le gestionnaire de simulation de VLE
@@ -71,7 +71,7 @@ rvle.setLinearCombination(f,1,1) 	# Linéaire
 # rvle.save(f, "output.vpz") 
 # La simulation depuis ce vpz permet de générer les vpz unitaires
 # vle -m -l -o 2 -z -P archidemio plan.vpz
-system.time(d <- rvle.runManagerThread(f,2))
+system.time(d <- rvle.runManagerThread(f,4))
 
 ## 3. Indices de sensibilité
 # Calcul de la quantité d'interet : Intégration : somme sur t & unité
@@ -97,7 +97,6 @@ g + geom_histogram() +
 	theme_bw()
 
 # Sorties Brutes
-xyplot(data=x[[1]], value ~ time, groups=variable, type="l")
 xyplot(data=f.out, y ~ 1:dim(f.out)[1] , type="l")
 histogram(~ y, data=f.out, type="count")
 
@@ -246,9 +245,9 @@ rvle.addPlanCondition(f, condition="condParametres", plan=f.as$X, factors=factor
 rvle.setLinearCombination(f,1,1) 
 # rvle.save(f, "plan.vpz") 
 
-# ~ 14 min pour 700 simulations de 100 modèles (0.8 sim/s)
-system.time(d <- rvle.runManagerThread(f,2))
-f.out <- compute.output(plan=f.as$X, data=d, type="2D")
+# ~ 11 min pour 800 simulations de 100 modèles (1.2 sim/s)
+system.time(d <- rvle.runManagerThread(f,4))
+f.out <- compute.output(plan=f.as$X, data=d)
 
 tell(f.as, f.out$y)
 plot.fast(f.as)
