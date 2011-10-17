@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.0.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="1013" height="405"  >
+<model name="Top model" type="coupled" x="0" y="0" width="744" height="326"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="35" y="45" width="100" height="120" >
 <out>
@@ -80,7 +80,7 @@
  <port name="update" />
 </out>
 </model>
-<model name="UnitPilot" type="atomic" conditions="condParametres,condPilot" dynamics="dynPiloteGraph" x="376" y="56" width="100" height="45" >
+<model name="UnitPilot" type="atomic" conditions="condParametres,condPilot" dynamics="dynPilotGraph" x="376" y="56" width="100" height="45" >
 <out>
  <port name="add" />
 </out>
@@ -156,7 +156,7 @@
 <dynamic name="dynInitiation" library="Initiation" model="Initiation" package="archidemio" type="local"  />
 <dynamic name="dynMeteo" library="meteo" model="GenericWithHeader" package="meteo" type="local"  />
 <dynamic name="dynPassive" library="passive" model="passive" package="archidemio" type="local"  />
-<dynamic name="dynPiloteGraph" library="Pilote" model="PiloteGraph" package="archidemio" type="local"  />
+<dynamic name="dynPilotGraph" library="Pilot" model="PiloteGraph" package="archidemio" type="local"  />
 <dynamic name="dynUnit" library="Unit" model="" package="archidemio" type="local"  />
 <dynamic name="dynUnit_0" library="glue" model="ConstantDynamicsDbg" package="glue" type="local"  />
 </dynamics>
@@ -359,8 +359,11 @@
  <port name="E_Receptivity" >
 <double>0.500000000000000</double>
 </port>
- <port name="E_TempOpt" >
+ <port name="E_TempInfectionOpt" >
 <double>25.000000000000000</double>
+</port>
+ <port name="E_TempInfectionWidth" >
+<double>0.002200000000000</double>
 </port>
  <port name="P_AreaMax" >
 <double>1.000000000000000</double>

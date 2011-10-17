@@ -27,7 +27,7 @@
 #include <vle/devs/Executive.hpp>
 #include <vle/value/Tuple.hpp>
 #include <vle/value/Map.hpp>
-#include <Eigen/Core>
+#include <eigen2/Eigen/Core>
 #include <string>
 
 enum ConnectionTypeOptions

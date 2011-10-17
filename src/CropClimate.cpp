@@ -42,7 +42,8 @@ namespace Crop {
 		TempMean = createSync("TempMean");
 
 		// Lecture des parametres
-		E_TempOpt = vle::value::toDouble(events.get("E_TempOpt"));
+		E_TempInfectionOpt = vle::value::toDouble(events.get("E_TempInfectionOpt"));
+		E_TempInfectionWidth = vle::value::toDouble(events.get("E_TempInfectionWidth"));
 	    }
 
 
@@ -56,7 +57,7 @@ namespace Crop {
 		/* Effet de la température (locale ou globale) sur la dispersion
 		 * ActionTemp <- function (T, a){pmax(1 - (0.0022 * (T - a)^2),0)}
 		 */		  
-		ActionTemp = fmax(1 - (0.0022 * pow((TempMean() - E_TempOpt),2)),0);
+		ActionTemp = fmax(1 - (E_TempInfectionWidth * pow((TempMean() - E_TempInfectionOpt),2)),0);
 		
 		/* Effet de la l'hygrométrie (locale ou globale) sur la dispersion
 		 */ 
@@ -81,7 +82,8 @@ namespace Crop {
 	    Sync RH;
 
 	    //Parametres du modele
-	    double E_TempOpt; /**< Paramètre: Température optimale pour le dev. du pathogène, Unite: degres */
+	    double E_TempInfectionOpt; /**< Paramètre: Température optimale pour le dev. du pathogène, Unite: degres */
+	    double E_TempInfectionWidth; /**< Paramètre: Plage de la réponse à la température pour le dev. du pathogène, Unite: SD */
 
     };
 }
