@@ -233,7 +233,8 @@ public:
     Pimpl(const vle::value::Map& buffer)
         : mConnectionType(CONNECTION_TYPE_IN_NAMED),
         mPrefix("node"),
-        mDefaultClassName("class")
+        mDefaultClassName("class"),
+        mNumber(0)
     {
         init(buffer);
     }
@@ -244,26 +245,43 @@ public:
 
         assert(mCacheMatrix.rows() == mCacheMatrix.cols());
         assert(mCacheMatrix.rows() >= mCurrentMatrix.rows());
-
+        
         if (mCacheMatrix.rows() > mCurrentMatrix.rows()) {
             for (int i = mCacheMatrix.rows() - mCurrentMatrix.rows();
-                 i < mCacheMatrix.rows(); ++i) {
-                createNode(model, i);
+                 i > 0; --i) {
+
+                createNode(model, mNumber);
+                mNumber++;
             }
         }
 
-        for (int j = 0; j < mCacheMatrix.cols(); ++j) {
-            for (int i = 0; i < mCacheMatrix.rows(); ++i) {
-                if (i > mCurrentMatrix.rows() or mCacheMatrix(j, i) !=
-                    mCurrentMatrix(j, i)) {
-                    if (mCacheMatrix(j, i) != 0.0) {
-                        createConnection(model, i, j);
-                    } else {
-                        removeConnection(model, i, j);
-                    }
-                }
-            }
-        }
+		if (mCurrentMatrix.rows() == 0) {
+			for (int j = 0; j < mCacheMatrix.cols(); ++j) {
+				for (int i = 0; i < mCacheMatrix.rows(); ++i) {
+					if (mCacheMatrix(j, i) != 0.0) {
+						createConnection(model, i, j);
+					}
+				}
+			}
+		} else {
+			for (int j = 0; j < mCacheMatrix.cols(); ++j) {
+				for (int i = 0; i < mCacheMatrix.rows(); ++i) {
+					if (i <= mCurrentMatrix.rows()) {
+						if (mCacheMatrix(j, i) != mCurrentMatrix(j, i)) {
+							if (mCacheMatrix(j, i) != 0.0) {
+								createConnection(model, i, j);
+							} else {
+								removeConnection(model, i, j);
+							}
+						}
+					} else {
+						if (mCacheMatrix(j, i) != 0.0) {
+							createConnection(model, i, j);
+						}
+					}
+				}
+			}
+		}
 
         mCurrentMatrix = mCacheMatrix;
     }
@@ -278,6 +296,7 @@ public:
     ConnectionList mDeletedConnection;
     ModelNameList mNewModel;
     ModelNameList mDeletedModel;
+    int mNumber ;
 
 private:
     void reinit()
@@ -477,7 +496,7 @@ private:
         }
 
         std::copy(adjmat.begin(), adjmat.end(), mCacheMatrix.data());
-        mCurrentMatrix = mCacheMatrix;
+       //mCurrentMatrix = mCacheMatrix;
 
         if (init.exist("default classname")) {
             mDefaultClassName =
