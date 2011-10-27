@@ -426,13 +426,29 @@ sim <- rvle.run(f)
 sim.l <- rvle.shape(sim, nExec=28, nVarNormal=2, nVarExec=12)
 
 ## Objet
-f <- new("Rvle", file = "1D_0.9.vpz", pkg="archidemio")
+f <- new("Rvle", file = "2D_0.9.vpz", pkg="archidemio")
 
-f <- run(f, condParametres.E_InitTime = 20)
+f <- run(f, condParametres.E_RateAlloDeposition = 0.8)
 
+# 1D
 sim.l <- rvle.shape(f, nExec=28, nVarNormal=2, nVarExec=12)
+# 2D
+sim.l <- rvle.shape(f, nExec=n, nVarExec=1, index="time", view="sensitivity")
 
+# 1D
 xyplot(value ~ time, data=sim.l, subset=variable=="LAI", type="l" )
+
+# 2D
+m.s <- aggregate(value ~ unit, data=sim.l, max, subset=sim.l$variable=="ScoreArea")
+m.s <- data.frame(
+	expand.grid(x=1:sqrt(n), y=1:sqrt(n)),
+	score = m.s$value
+)
+v <- ggplot(data=m.s, aes(x, y, z = score))
+grid.lattice <- v + geom_tile(aes(fill = score)) +
+	stat_contour(bins = sqrt(n)/10) +
+	scale_fill_gradient(low="white", high="black") +
+	scale_y_reverse(name="") + xlab("Regular lattice graph (4 neighbours)") + opts(aspect.ratio = 1) + theme_bw()
 
 
 

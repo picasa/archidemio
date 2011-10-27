@@ -364,19 +364,19 @@ public:
 	
 	tr.setMatrix(A);
 	
-        tr.build(this);
+    tr.build(this);
 		
 	// Boucle pour creer les connexions 
 	mNumber = mParameter->getInt("number");
 	mPrefix = mParameter->getString("prefix");
 		
-        // Initiation sur certains noeuds selon condition E_InitSpace (tuple)       
-        std::vector < unsigned int >::const_iterator it;
-	    for (it = E_InitSpace.begin(); it != E_InitSpace.end(); ++it) {
-		addConnection("Initiation", "InitQuantity", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
-	    }
+	// Initiation sur certains noeuds selon condition E_InitSpace (tuple)       
+	std::vector < unsigned int >::const_iterator it;
+    for (it = E_InitSpace.begin(); it != E_InitSpace.end(); ++it) {
+	addConnection("Initiation", "InitQuantity", (vle::fmt("%1%-%2%") % mPrefix % (*it)).str(), "perturb");
+    }
 		
-        // Ajout des connexions modèles DE -> EXE
+    // Ajout des connexions modèles DE -> EXE
 	for (int i = 0; i!=mNumber; i++) {
 	    const std::string current = (vle::fmt("%1%-%2%") % mPrefix % i).str();
 	    

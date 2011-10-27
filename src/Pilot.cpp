@@ -44,7 +44,7 @@ public:
         //ThermalTime0 = 0;
         ThermalTime = 0;
         PreformedTT = 0;
-        P_ReproductiveTT = 0;        
+        //P_ReproductiveTT = 0;        
 		P_ReproductiveTT = events.getDouble("P_ReproductiveTT");
         
 

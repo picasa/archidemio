@@ -4,10 +4,7 @@
 #library(gdata)
 library(ggplot2)
 library(lattice)
-library(sensitivity)
-library(lhs)
 library(rgl)
-library(igraph)
 library(Cairo)
 
 ### Fonctions de simulation & Paramétrage
@@ -37,8 +34,8 @@ factors.name <- c(
 factors.bounds <- data.frame(
 	name = factors.name,
 	def = c(50, 10, 0.5, 0.2, 0.01, 5, 1000, 25),
-	min = c(30, 1, 0.05, 0.05, 0.05, 1, 700, 15),
-	max = c(140, 15, 1, 1, 0.3, 15, 1300, 30)
+	min = c(30, 1, 0.05, 0.05, 0.05, 1, 700, 10),
+	max = c(140, 15, 1, 1, 0.3, 15, 1300, 35)
 )
 
 factors <- factors.name[1:8]

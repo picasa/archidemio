@@ -55,6 +55,7 @@ public:
 		P_ElongationSlope = events.getDouble("P_ElongationSlope");
 		P_ElongationTT = events.getDouble("P_ElongationTT");
         P_Porosity = events.getDouble("P_Porosity");
+        P_ReceptivityTT = events.getDouble("P_ReceptivityTT");
         E_RateAutoDeposition = events.getDouble("E_RateAutoDeposition");
         E_RateAlloDeposition = events.getDouble("E_RateAlloDeposition");
         E_InfectiousPeriod = events.getDouble("E_InfectiousPeriod");
@@ -141,8 +142,8 @@ virtual void compute(const vd::Time& /*time*/)
      * (paramètres : pente, asymptotes (haut et bas), abscisse pt d'inflexion)
      */
     switch (C_Crop) {
-        case 1: Receptivity = 1 - (1 / (1 + exp(-0.001 * (ThermalAge() - 500)))); // Pdt (Décroissante)
-        case 2: Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - 500))) + 0.2; // Pois (Croissante)
+        case 1: Receptivity = 1 - (1 / (1 + exp(-0.001 * (ThermalAge() - P_ReceptivityTT)))); // Pdt (Décroissante)
+        case 2: Receptivity = 1 / (1 + exp(-0.005 * (ThermalAge() - P_ReceptivityTT))) + 0.2; // Pois (Croissante)
         case 3: Receptivity = 0;
     } 
     
@@ -303,6 +304,7 @@ private:
     double P_ElongationSlope ; /** Paramètre : acceleration de la croissance en hauteur d'une unité */  
     double P_ElongationTT ; /** Paramètre : date de demi-elongation d'une unité */  
     double P_Porosity ; /** Paramètre : Porosité de l'unité fonctionnelle */  
+    double P_ReceptivityTT ; /** Paramètre : temps de déclenchement de la receptivité de l'unité */  
     double E_RateAutoDeposition; /** Paramètre : Vitesse de transmission de la maladie */
     double E_RateAlloDeposition; /** Paramètre : Modulation du taux d'allodeposition */
     double E_InfectiousPeriod; /** Paramètre : durée de la période infectieuse */

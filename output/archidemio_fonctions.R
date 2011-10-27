@@ -1,6 +1,16 @@
 ## Bibliotheques & chemins
-library(reshape)
+# Simulation & calcul
 library(rvle)
+library(doMC)
+# Données
+library(reshape)
+library(plyr)
+# Manipulation de graphes
+library(igraph)
+# Analyse de sensibilité
+library(sensitivity)
+library(lhs)
+
 
 
 ## rvle.shape() : indexer les données produites par un modèle VLE
@@ -30,8 +40,8 @@ rvle.shape <- function (
 	
 	# passage au format "long" : index = time | ThermalTime
 	# Construction des index manquants : numero d'unité et type de variable (culture / unité) 
-	# [TODO] : en fonction du nom de colonne
-	# [TODO] : detecter la vue active dans le modèle
+	# TODO index en fonction du nom de colonne
+	# TODO detecter la vue active dans le modèle pour éviter les if
 	if (view=="debug") {
 		m <- melt(sim, id=index) 
 		unit <- c(rep(rep(NA, each=simLength), each=nVarNormal), rep(rep(1:nExec, each=simLength), each=nVarExec)) 
@@ -222,24 +232,23 @@ rvle.addPlanCondition <- function(self, condition, plan, factors) {
 	}
 }
 
-## compute.output : Résumer les sorties brutes du modèle (d.raw) en une variable d'interet
-# pour l'analyse de sensibilité : pour modèle 1D & 2D
-# TODO : une seule méthode selon le type de modèle (plus de particularité pour graphe dynamique)
-compute.output <- function (plan, data, type="1D") {
+
+## compute.output // : Résumer les sorties brutes du modèle en une variable d'intérêt pour l'analyse de sensibilité
+compute.output <- function (plan, data, core=1) {
+	# Parallélisation avec la bibliothèque doMC
+	registerDoMC(core)
 	
-	# Mise en forme
-	d.long <- lapply(data, melt, id="time")
+	# Possibilité de retourner un liste de matrices arrangées au format long
+	# tmp <- laply(data, melt, id="time", .parallel=T)
 	
-	# Intégration
-	y=NULL
-	for (i in 1:length(d.long)) {
-		y=c(y, sum(d.long[[i]]$value, na.rm=T))
-	}
-	
+	# Somme de la variable de sortie sur le temps et les unités
+	unit.sum <- function (x) {sum(x[[1]][,-1], na.rm=T)}
+	# Application aux éléments de la liste
+	y <- laply(data, unit.sum, .parallel=T)
+
 	# Construction d'un objet contenant le plan d'expérience (X) et la réponse du modèle
 	return(data.frame(plan, y))
 }
-
 
 ## Méthodes graphiques comparables selon les méthodes d'analyse de sensibilité
 ## plot.morris
