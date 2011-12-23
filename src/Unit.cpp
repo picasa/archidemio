@@ -189,7 +189,7 @@ virtual void compute(const vd::Time& /*time*/)
     AreaHealthy = fmax(
         AreaHealthy(-1)
         -InitQuantity() 
-        +RateAreaExpansion() 
+        +RateAreaExpansion()
         -(RateAutoDeposition() * AreaInfectious(-1) * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         -(InDeposition() * AreaHealthy(-1)/AreaExpansion(-1)) * Receptivity()
         -(RateAreaSenescence() * AreaHealthy(-1)/AreaActive(-1)),0);

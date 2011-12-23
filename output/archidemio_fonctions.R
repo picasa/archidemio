@@ -72,6 +72,34 @@ rvle.shape <- function (
 	return(d)
 }
 
+## rvle.shape.grid() : Mise en forme de données pour représentation en grille
+rvle.shape.grid <- function (object, nExec) {
+
+	# Dataframe des sorties du modèle
+	sim <- as.data.frame(object)
+	simLength=length(sim$time)
+
+ 	# Dataframe au format long	
+	m <- melt(sim, id="time") 
+	unit <- c(rep(rep(1:nExec, each=simLength), each=1)) 
+	d <- data.frame(
+		time=m$time,
+		variable=sub(".*\\.","", m$variable), 
+		unit=as.factor(unit), 
+		value=m$value
+	)	
+	
+	# Dataframe au format grille : valeur finale de la variable dynamique
+	d <- data.frame(
+		expand.grid(x=1:sqrt(nExec), y=1:sqrt(nExec)),
+		aggregate(value ~ unit, data=d, max)
+	)
+	
+	# Sortie
+	return(d)
+}
+
+
 
 ## rvle.getAllConditionPortValues() : Obtenir les valeurs nominales des paramètres
 ## TODO : Adapter aux vpz contenant un plan linéaire.
@@ -92,8 +120,8 @@ rvle.getAllConditionPortValues <- function(self, condition) {
  
 
 ## rvle.setTranslator() : attribue des conditions pour l'extension GraphTranslator à un objet VLE
-rvle.setTranslator <- function (
-	object, condition, class, n, init, type="lattice", 
+getAdjacency <- function (
+	n, type="lattice", 
 	neighbour=matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE) # 4 voisins
 	) {
 
@@ -112,7 +140,7 @@ rvle.setTranslator <- function (
 
 	}	
 	
-	# Grille selon un voisinage (emission) défini.
+	# Grille selon un voisinage (émission) défini.
 	if (type=="custom") {
 		A = voisinage(neighbour, nbcolonne=sqrt(n), nbligne=sqrt(n))
 	}
@@ -123,28 +151,29 @@ rvle.setTranslator <- function (
 		A = get.adjacency(G)
 	}
 	
+	# Noms lignes + colonnes
 	rownames(A)<-c(1:n)-1
 	colnames(A)<-c(1:n)-1
-	
-	
-	## Mise en place des conditions de GraphTranslator
-	# n : nombre de noeuds (modèles) du graphe	
-	rvle.setIntegerCondition(object, condition, "E_GridNumber", n)
-	#object@sim
-	# Vecteur (string) : modèles à instancier à chaque noeud
-	rvle.setStringCondition(object, condition, "E_GridClasses", class)
-	# Vecteur (string) : Matrice d'adjacence 
-	rvle.setTupleCondition(object, condition, "E_GridMatrix", as.vector(A))
-	# Tuple : noeuds d'infection, tirage uniforme dans 1:n
-	rvle.setTupleCondition(object, condition, "E_InitSpace", round(runif(init,1,n)))
-	#rvle.setTupleCondition(object, condition, "E_InitSpace", init)
-	
+		
 	# Sortie
 	return(A)
 }
 
+## Mise en place des conditions de GraphTranslator dans le VPZ
+rvle.setTranslator <- function(object, network=A, init, condition="condParametres", class="Unit"){
 
-
+	## Mise en place des conditions de GraphTranslator
+	# n : nombre de noeuds (modèles) du graphe	
+	rvle.setIntegerCondition(object, condition, "E_GridNumber", dim(network)[1])
+	#object@sim
+	# Vecteur (string) : modèles à instancier à chaque noeud
+	rvle.setStringCondition(object, condition, "E_GridClasses", class)
+	# Vecteur (string) : Matrice d'adjacence 
+	rvle.setTupleCondition(object, condition, "E_GridMatrix", as.vector(network))
+	# Tuple : noeuds d'infection, tirage uniforme dans 1:n
+	rvle.setTupleCondition(object, condition, "E_InitSpace", round(runif(init,1,dim(network)[1])))
+	#rvle.setTupleCondition(object, condition, "E_InitSpace", init)
+}
 
 #### Analyse de sensibilité ####
 ### lhs2bounds : Transformer un plan linéaire centré en un plan entre deux bornes

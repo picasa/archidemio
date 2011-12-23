@@ -402,6 +402,9 @@ Cairo(file="neighbours.pdf", width = 16, height = 5, units="in", type="pdf", poi
 print(v.gfx)
 dev.off()
 
+
+
+
 ########################################################################
 #### DEBUG ####
 
@@ -531,10 +534,3 @@ xyplot(sim.l[sim.l$variable=="Porosity","value"] ~ sim.l[sim.l$variable=="Therma
 ## Import
 # strsplit(colnames(sim), "\\.")
 # sim <- read.table("exp_vueDebug.csv", sep=";", dec=".", header=T, colClasses="numeric") 
-
-# contour
-# m <- melt(volcano)
-# names(m) <- c("x", "y", "z")
-# v <- ggplot(data=m, aes(x, y, z = z)) 
-# v + stat_contour()
-# v + geom_tile(aes(fill = z)) + stat_contour() + scale_fill_gradient(low="black", high="white")

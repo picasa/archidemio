@@ -6,7 +6,8 @@ library(ggplot2)
 library(lattice)
 library(Cairo)
 
-source("fonctions.R")
+setwd("~/Documents/Travail/2009_Archidemio/Modele/archidemio/output")
+source("archidemio_fonctions.R")
 
 ## Fonctions pour la simulation
 # Simulation
@@ -28,4 +29,4 @@ h <- sim.l[(sim.l$variable %in% HLIR==T),]
 h <- drop.levels(h)
 h$variable <- factor(h$variable, levels=rev(HLIR))
 
-ggplot(h, aes(time, weight=value, fill=variable)) + geom_bar(binwidth=10, position="fill") + theme_bw() 
+ggplot(h, aes(time, weight=value, fill=variable)) + geom_bar(binwidth=1, position="fill") + theme_bw()
