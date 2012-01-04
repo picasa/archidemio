@@ -2,7 +2,7 @@
 <!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.0.0.dtd">
 <vle_project version="0.2" date="lun., 25 janv. 2010" author="Pierre Casadebaig">
 <structures>
-<model name="Top model" type="coupled" x="0" y="0" width="950" height="318"  >
+<model name="Top model" type="coupled" x="0" y="0" width="1305" height="603"  >
 <submodels>
 <model name="meteo" type="atomic" conditions="condEqDiff,condMeteo" dynamics="dynMeteo" x="36" y="45" width="100" height="120" >
 <out>
@@ -14,7 +14,7 @@
  <port name="TempMin" />
 </out>
 </model>
-<model name="Crop" type="coupled" x="274" y="38" width="1016" height="525"  >
+<model name="Crop" type="coupled" x="274" y="38" width="100" height="120"  >
 <in>
  <port name="ETP" />
  <port name="RH" />
@@ -129,11 +129,11 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="Buffer" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="UnitPilot" port="ThermalTime" />
+ <destination model="Buffer" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="SumAreaActive" port="update" />
@@ -196,7 +196,7 @@
 </model>
 </class>
 </classes>
-<experiment name="exp" duration="149.000000000000000" begin="2455302.000000000000000" combination="linear" seed="1" >
+<experiment name="exp" duration="149.000000000000000" begin="2452015.000000000000000" combination="linear" seed="1" >
 <replicas seed="581869302" number="1" />
 <conditions>
 <condition name="condCropClimate" >
@@ -250,7 +250,7 @@
 <map><key name="etp"><string>ETP</string></key><key name="hr"><string>RH</string></key><key name="p"><string>Rain</string></key><key name="rg"><string>Rad</string></key><key name="tn"><string>TempMin</string></key><key name="tx"><string>TempMax</string></key></map>
 </port>
  <port name="day_column" >
-<integer>1</integer>
+<integer>2</integer>
 </port>
  <port name="meteo_file" >
 <string>MTP_2001.txt</string>
@@ -259,10 +259,13 @@
 <string>name</string>
 </port>
  <port name="month_column" >
-<integer>0</integer>
+<integer>1</integer>
 </port>
  <port name="variables" >
 <set><set><string>ETP</string><double>0.000000000000000</double></set><set><string>RH</string><double>0.000000000000000</double></set><set><string>TempMin</string><double>0.000000000000000</double></set><set><string>TempMax</string><double>0.000000000000000</double></set><set><string>Rain</string><double>0.000000000000000</double></set><set><string>Rad</string><double>0.000000000000000</double></set></set>
+</port>
+ <port name="year_column" >
+<integer>0</integer>
 </port>
 </condition>
 <condition name="condParametres" >
