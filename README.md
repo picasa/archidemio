@@ -20,11 +20,14 @@ project repository : [https://github.com/vle-forge/vle](https://github.com/vle-f
 git clone git://github.com/vle-forge/vle.git
 
 cd vle
+git checkout master1.0
+
 mkdir build
 cd build
 cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
 make
-make install
+cpack -G DEB
+sudo dpkg -i vle-1.0.3-*.deb
 ```
 
 ### Install archidemio model
