@@ -118,7 +118,7 @@ MESSAGE(STATUS "- - - -")
 ## CPack configuration
 ##
 
-INSTALL(FILES Authors.txt ChangeLog.txt License.txt News.txt Readme.txt
+INSTALL(FILES Authors.txt ChangeLog.txt License.txt News.txt README.md
   DESTINATION .)
 
 INCLUDE(CMakeCPack.cmake)
