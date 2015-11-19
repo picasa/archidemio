@@ -77,5 +77,5 @@ private:
 
 } 
 
-DECLARE_NAMED_DYNAMICS_DBG(Initiation, Crop::Initiation)
+DECLARE_DYNAMICS(Crop::Initiation)
 

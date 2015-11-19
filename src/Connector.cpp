@@ -1,6 +1,6 @@
 #include <vle/devs/Executive.hpp>
 #include <vle/devs/ExecutiveDbg.hpp>
-#include <vle/graph/CoupledModel.hpp>
+#include <vle/vpz/CoupledModel.hpp>
 
 class Connector : public vle::devs::Executive
 {
@@ -21,9 +21,9 @@ public:
 	virtual void internalTransition(const vle::devs::Time& /*time*/)
 	{
 		if (mSended == false) {
-			// Ajout des connexions modèle couplé -> modèle sum
-			const vle::graph::ConnectionList& inputs = coupledmodel().getInputPortList();
-			vle::graph::ConnectionList::const_iterator it;
+			// Ajout des connexions modï¿½le couplï¿½ -> modï¿½le sum
+			const vle::vpz::ConnectionList& inputs = coupledmodel().getInputPortList();
+			vle::vpz::ConnectionList::const_iterator it;
 			
 			/* DEBUG : affiche les connections
 			for (it = inputs.begin(); it != inputs.end(); ++it) {
@@ -38,7 +38,7 @@ public:
 				}
 			}
 
-			// Pour les modèles sans dépendances
+			// Pour les modï¿½les sans dï¿½pendances
 			if (mPortList.empty()){
 				createModelFromClass("node-init", "node-init");
 				//delModel("Deposition");
@@ -56,7 +56,7 @@ public:
 		if (mSended == true) {
 			return 0;
 		} else {
-			return vle::devs::Time::infinity;
+			return vle::devs::infinity;
 		}
 	}
     
@@ -66,7 +66,7 @@ public:
 		std::vector < std::string >::const_iterator it;
 		
 		for (it = mPortList.begin(); it != mPortList.end(); ++it) {		
-			output.addEvent(buildEventWithAString("add", "name", *it));
+			output.push_back(buildEventWithAString("add", "name", *it));
 		}	
 	}
 
@@ -74,4 +74,4 @@ public:
 	bool mSended;
 };
 
-DECLARE_NAMED_EXECUTIVE_DBG(Connector, Connector)
+DECLARE_EXECUTIVE_DBG(Connector)

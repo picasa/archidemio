@@ -24,8 +24,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vle/extension/DifferenceEquation.hpp>
-#include <vle/extension/DifferenceEquationDbg.hpp>
+#include <vle/extension/difference-equation/Multiple.hpp>
 #include <vle/devs/DynamicsDbg.hpp>
 
 namespace vd = vle::devs;

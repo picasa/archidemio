@@ -47,7 +47,7 @@ public:
 	const vd::InitEventList& events) 
 	: vf::Statechart(init, events)	
 	{
-		// Variables d'état
+		// Variables d'ï¿½tat
 	    eventInState(this, "ThermalTime", &CropState::in)
 		>> BareSoil >> Sowing >> Emergence >> Closure
 			>> Reproductive >> Maturity;
@@ -73,23 +73,23 @@ public:
 
     void reproductive (const vd::Time& /* time */, vd::ExternalEventList& output) const
 	{
-	    // Remplace la valeur d'une variable d'état dans un modèle "Unit"
+	    // Remplace la valeur d'une variable d'ï¿½tat dans un modï¿½le "Unit"
 	    output << (ve::DifferenceEquation::Var("CropState") = 4.0);
 	}
 	
     
 private:
 
-    // Accès variables Diff Equation
+    // Accï¿½s variables Diff Equation
      void in(const vd::Time& /* time */, const vd::ExternalEvent* event )
     { ThermalTime << ve::DifferenceEquation::Var("ThermalTime", event); }
 
-	// Varibles d'état
+	// Varibles d'ï¿½tat
     double ThermalTime;
 
 }; // namespace Crop
 
 } 
 
-DECLARE_NAMED_DYNAMICS_DBG(CropState, Crop::CropState)
+DECLARE_DYNAMICS(Crop::CropState)
 

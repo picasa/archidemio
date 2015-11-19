@@ -25,8 +25,8 @@
 #include <vle/extension/fsa/Statechart.hpp>
 #include <vle/extension/DifferenceEquation.hpp>
 #include <vle/devs/DynamicsDbg.hpp>
-#include <vle/utils.hpp>
-#include <vle/devs.hpp>
+#include <vle/utils/DateTime.hpp>
+#include <vle/devs/Time.hpp>
 
 namespace vd = vle::devs;
 namespace ve = vle::extension;
@@ -160,7 +160,7 @@ public:
     { 
       vd::ExternalEvent* ee=new vd::ExternalEvent("add");
       ee << vd::attribute("index", new vv::Integer(mIndex));
-      output.addEvent(ee);
+      output.push_back(ee);
     }
    
     // Accès à la variable ThermalTime
@@ -177,66 +177,5 @@ private:
 };
 
 
-
-
-
-
-class PiloteGraph : public vle::devs::Dynamics
-{
-public:
-    PiloteGraph(const vle::devs::DynamicsInit& init,
-              const vle::devs::InitEventList& events) :
-	vle::devs::Dynamics(init, events),
-    matrix(events.getTuple("E_GridMatrix"))
-    {
-        prefix = events.getString("prefix");
-        port = events.getString("port");
-        classes = events.getString("E_GridClasses");
-        number = events.getInt("E_GridNumber");
-    }
-    
-    virtual ~PiloteGraph() { }
-    
-    vle::devs::Time init(const vle::devs::Time& /* time */)
-    {
-        return 0;
-    }
-    
-    void output(const vle::devs::Time& /* time */,
-                vle::devs::ExternalEventList& output) const
-	{	
-        
-        
-        vd::ExternalEvent* ee=new vd::ExternalEvent("add");
-
-		vle::value::Map* mp = new vle::value::Map ();
-        
-        mp->addString("prefix", prefix);
-        mp->addInt("number", number);
-        mp->addString("port", "out");
-        mp->add("adjacency matrix", matrix);
-        mp->addString("default classname", classes);
-        		
-        		
-        ee << vd::attribute("parameter", mp);
-   		output.addEvent(ee);
-	}
-		
-	    vle::devs::Time timeAdvance() const
-    {
-		return vle::devs::Time::infinity;
-    }
-	
-    
-private:
-
-std::string prefix;
-std::string classes;
-std::string port;
-vle::value::Tuple matrix;
-int number;
-};
-
-DECLARE_NAMED_DYNAMICS_DBG(PiloteFSA, PiloteFSA)
-DECLARE_NAMED_DYNAMICS_DBG(PiloteGraph, PiloteGraph)
+DECLARE_DYNAMICS(PiloteFSA)
 

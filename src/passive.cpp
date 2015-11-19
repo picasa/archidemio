@@ -21,8 +21,7 @@
  */
 
 
-#include <vle/extension/DifferenceEquation.hpp>
-#include <vle/extension/DifferenceEquationDbg.hpp>
+#include <vle/extension/difference-equation/Multiple.hpp>
 
 namespace Crop {
 
@@ -52,6 +51,6 @@ namespace Crop {
 
     };
 }
-DECLARE_NAMED_DIFFERENCE_EQUATION_MULTIPLE_DBG(passive, Crop::passive); 
+DECLARE_DYNAMICS(Crop::passive);
 
 

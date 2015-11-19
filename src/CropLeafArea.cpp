@@ -1,5 +1,5 @@
 
-#include <vle/extension/DifferenceEquationDbg.hpp>
+#include <vle/extension/difference-equation/Multiple.hpp>
 
 namespace vd = vle::devs;
 namespace ve = vle::extension;
@@ -54,5 +54,5 @@ private:
 };
 
 } // namespace Crop
-DECLARE_DIFFERENCE_EQUATION_MULTIPLE_DBG(Crop::CropLeafArea)
+DECLARE_DYNAMICS(Crop::CropLeafArea)
 

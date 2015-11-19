@@ -1,93 +1,26 @@
-INCLUDE_DIRECTORIES(
-  ${CMAKE_SOURCE_DIR}/src
-  ${VLE_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-  ${Eigen2_INCLUDE_DIR})
+include_directories(${CMAKE_SOURCE_DIR}/src ${VLE_INCLUDE_DIRS}
+  ${VLE_DEPS_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS} ${CELLDEVS_INCLUDE_DIRS} 
+  ${CELLQSS_INCLUDE_DIRS}
+  ${DECISION_INCLUDE_DIRS} ${DIFFERENCE_EQU_INCLUDE_DIRS}
+  ${DIFFERENTIAL_EQU_INCLUDE_DIRS} ${DSDEVS_INCLUDE_DIRS} ${FSA_INCLUDE_DIRS}
+  ${PETRINET_INCLUDE_DIRS})
 
-LINK_DIRECTORIES(
-  ${VLE_LIBRARY_DIRS}
-  ${Boost_LIBRARY_DIRS})
+link_directories(${VLE_LIBRARY_DIRS}
+  ${VLE_DEPS_LIBRARY_DIRS} ${CELLDEVS_LIBRARY_DIRS}
+  ${CELLQSS_LIBRARY_DIRS} ${DECISION_LIBRARY_DIRS}
+  ${DIFFERENCE_EQU_LIBRARY_DIRS} ${DIFFERENTIAL_EQU_LIBRARY_DIRS}
+  ${DSDEVS_LIBRARY_DIRS} ${FSA_LIBRARY_DIRS} ${PETRINET_LIBRARY_DIRS})
   
-ADD_LIBRARY(passive SHARED passive.cpp)
-ADD_LIBRARY(CropPhenology SHARED CropPhenology.cpp)
-ADD_LIBRARY(CropClimate SHARED CropClimate.cpp)
-ADD_LIBRARY(CropLeafArea SHARED CropLeafArea.cpp)
-ADD_LIBRARY(Unit SHARED Unit.cpp)
-ADD_LIBRARY(Initiation SHARED Initiation.cpp)
-ADD_LIBRARY(Pilot SHARED Pilot.cpp)
-ADD_LIBRARY(Constructor SHARED Constructor.cpp
-  GraphTranslator.hpp GraphTranslator.cpp)
-ADD_LIBRARY(Connector SHARED Connector.cpp)
-ADD_LIBRARY(CropState SHARED CropState.cpp)
+DeclareDifferenceEquationDynamics(passive "passive.cpp")
+DeclareDifferenceEquationDynamics(CropPhenology "CropPhenology.cpp")
+DeclareDifferenceEquationDynamics(CropClimate "CropClimate.cpp")
+DeclareDifferenceEquationDynamics(CropLeafArea "CropLeafArea.cpp")
+DeclareDifferenceEquationDynamics(Unit "Unit.cpp")
+DeclareFsaDifferenceEquationDynamics(Initiation "Initiation.cpp")
+DeclareFsaDifferenceEquationDynamics(PilotGraph "PilotGraph.cpp")
+DeclareFsaDifferenceEquationDynamics(PilotFSA "PilotFSA.cpp")
+DeclareDsDevsDynamics(ExecutiveFSA "ExecutiveFSA.cpp;GraphTranslator.hpp;GraphTranslator.cpp")
+DeclareDsDevsDynamics(ExecutiveGraph "ExecutiveGraph.cpp;GraphTranslator.hpp;GraphTranslator.cpp")
+DeclareDsDevsDynamics(Connector "Connector.cpp")
+DeclareFsaDifferenceEquationDynamics(CropState "CropState.cpp")
 
-TARGET_LINK_LIBRARIES(passive
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(CropPhenology
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(CropClimate
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(CropLeafArea
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
-TARGET_LINK_LIBRARIES(Unit
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
- TARGET_LINK_LIBRARIES(Initiation
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
- TARGET_LINK_LIBRARIES(Pilot
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
- TARGET_LINK_LIBRARIES(Constructor
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
- TARGET_LINK_LIBRARIES(Connector
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
- TARGET_LINK_LIBRARIES(CropState
-  ${VLE_LIBRARIES}
-  ${Boost_LIBRARIES})
-  
-INSTALL(TARGETS passive
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS CropPhenology
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS CropClimate
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS CropLeafArea
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS Unit
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS Initiation
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS Pilot
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS Constructor
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS Connector
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
-INSTALL(TARGETS CropState
-  RUNTIME DESTINATION lib
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
