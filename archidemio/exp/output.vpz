@@ -1,0 +1,1319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "http://www.vle-project.org/vle-1.3.0.dtd">
+<vle_project version="1.3.0" date="" author="UnitPilot">
+<structures>
+<model name="top" type="coupled" x="0" y="0" width="300" height="300"  >
+<submodels>
+<model name="CropClimate" type="atomic" conditions="cParams,cCropClimate" dynamics="dCropClimate" observables="oCropClimate" x="206" y="99" width="50" height="50" >
+<in>
+ <port name="RH" />
+ <port name="TempMean" />
+</in>
+<out>
+ <port name="ActionRH" />
+ <port name="ActionTemp" />
+</out>
+</model>
+<model name="CropLeafArea" type="atomic" conditions="cParams,cCropLeafArea" dynamics="dCropLeafArea" observables="oCropLeafArea" x="673" y="111" width="50" height="50" >
+<in>
+ <port name="CropAreaActive" />
+</in>
+</model>
+<model name="CropPhenology" type="atomic" conditions="cParams,cCropPhenology" dynamics="dCropPhenology" observables="oCropPhenology" x="202" y="183" width="50" height="50" >
+<in>
+ <port name="TempMax" />
+ <port name="TempMin" />
+</in>
+<out>
+ <port name="TempEff" />
+ <port name="TempMean" />
+ <port name="ThermalTime" />
+</out>
+</model>
+<model name="GenericSum" type="atomic" conditions="cGenericSum" dynamics="dGenericSum" observables="oGenericSum" x="559" y="111" width="50" height="50" >
+<in>
+ <port name="Unit_10_AreaActive" />
+ <port name="Unit_11_AreaActive" />
+ <port name="Unit_12_AreaActive" />
+ <port name="Unit_13_AreaActive" />
+ <port name="Unit_14_AreaActive" />
+ <port name="Unit_15_AreaActive" />
+ <port name="Unit_16_AreaActive" />
+ <port name="Unit_17_AreaActive" />
+ <port name="Unit_18_AreaActive" />
+ <port name="Unit_19_AreaActive" />
+ <port name="Unit_1_AreaActive" />
+ <port name="Unit_20_AreaActive" />
+ <port name="Unit_21_AreaActive" />
+ <port name="Unit_22_AreaActive" />
+ <port name="Unit_23_AreaActive" />
+ <port name="Unit_24_AreaActive" />
+ <port name="Unit_25_AreaActive" />
+ <port name="Unit_26_AreaActive" />
+ <port name="Unit_27_AreaActive" />
+ <port name="Unit_28_AreaActive" />
+ <port name="Unit_2_AreaActive" />
+ <port name="Unit_3_AreaActive" />
+ <port name="Unit_4_AreaActive" />
+ <port name="Unit_5_AreaActive" />
+ <port name="Unit_6_AreaActive" />
+ <port name="Unit_7_AreaActive" />
+ <port name="Unit_8_AreaActive" />
+ <port name="Unit_9_AreaActive" />
+</in>
+<out>
+ <port name="Sum" />
+</out>
+</model>
+<model name="Initialization" type="atomic" conditions="simulation_engine,cParams" dynamics="dInitialization" x="225" y="16" width="50" height="50" >
+<out>
+ <port name="InitQuantity" />
+</out>
+</model>
+<model name="Meteo" type="atomic" conditions="cMeteo,simulation_engine" dynamics="dMeteo" observables="oMeteo" x="54" y="58" width="50" height="85" >
+<out>
+ <port name="etp" />
+ <port name="hr" />
+ <port name="p" />
+ <port name="rg" />
+ <port name="tn" />
+ <port name="tx" />
+</out>
+</model>
+<model name="UnitPilot" type="atomic" conditions="cUnitPilot,cParams" dynamics="dUnitPilot" observables="oUnitPilot" x="380" y="109" width="128" height="50" >
+<in>
+ <port name="ThermalTime" />
+</in>
+</model>
+<model name="Unit_1" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_10" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_11" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_12" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_13" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_14" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_15" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_16" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_17" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_18" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_19" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_2" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_20" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_21" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_22" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_23" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_24" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_25" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_26" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_27" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_28" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_3" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_4" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_5" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_6" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_7" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_8" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+<model name="Unit_9" type="atomic" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" x="0" y="0" width="50" height="50" >
+<in>
+ <port name="ActionTemp" />
+ <port name="In" />
+ <port name="InitQuantity" />
+ <port name="TempEff" />
+ <port name="ThermalTime" />
+</in>
+<out>
+ <port name="AreaActive" />
+ <port name="Out" />
+</out>
+</model>
+</submodels>
+<connections>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_12" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_13" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_11" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_1" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_10" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_14" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_15" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_16" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_17" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_18" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_19" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_2" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_20" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_21" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_22" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_23" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_24" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_25" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_26" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_27" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_28" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_3" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_4" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_5" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_6" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_7" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_8" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="Unit_9" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_12" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_13" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_11" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_1" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_10" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_14" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_15" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_16" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_17" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_18" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_19" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_2" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_20" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_21" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_22" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_23" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_24" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_25" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_26" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_27" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_28" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_3" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_4" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_5" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_6" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_7" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_8" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="Unit_9" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempMean" />
+ <destination model="CropClimate" port="TempMean" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_12" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_13" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_11" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="UnitPilot" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_1" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_10" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_14" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_15" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_16" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_17" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_18" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_19" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_2" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_20" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_21" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_22" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_23" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_24" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_25" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_26" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_27" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_28" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_3" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_4" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_5" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_6" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_7" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_8" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="Unit_9" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="GenericSum" port="Sum" />
+ <destination model="CropLeafArea" port="CropAreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_12" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_13" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_11" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_1" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_10" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_14" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_15" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_16" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_17" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_18" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_19" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_2" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_20" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_21" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_22" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_23" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_24" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_25" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_26" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_27" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_28" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_3" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_4" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_5" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_6" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_7" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_8" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Initialization" port="InitQuantity" />
+ <destination model="Unit_9" port="InitQuantity" />
+</connection>
+<connection type="internal">
+ <origin model="Meteo" port="hr" />
+ <destination model="CropClimate" port="RH" />
+</connection>
+<connection type="internal">
+ <origin model="Meteo" port="tn" />
+ <destination model="CropPhenology" port="TempMin" />
+</connection>
+<connection type="internal">
+ <origin model="Meteo" port="tx" />
+ <destination model="CropPhenology" port="TempMax" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_1" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_1_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_1" port="Out" />
+ <destination model="Unit_2" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_10" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_10_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_10" port="Out" />
+ <destination model="Unit_11" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_11" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_11_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_11" port="Out" />
+ <destination model="Unit_12" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_12" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_12_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_12" port="Out" />
+ <destination model="Unit_13" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_13" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_13_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_13" port="Out" />
+ <destination model="Unit_14" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_14" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_14_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_14" port="Out" />
+ <destination model="Unit_15" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_15" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_15_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_15" port="Out" />
+ <destination model="Unit_16" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_16" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_16_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_16" port="Out" />
+ <destination model="Unit_17" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_17" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_17_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_17" port="Out" />
+ <destination model="Unit_18" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_18" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_18_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_18" port="Out" />
+ <destination model="Unit_19" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_19" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_19_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_19" port="Out" />
+ <destination model="Unit_20" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_2" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_2_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_2" port="Out" />
+ <destination model="Unit_3" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_20" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_20_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_20" port="Out" />
+ <destination model="Unit_21" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_21" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_21_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_21" port="Out" />
+ <destination model="Unit_22" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_22" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_22_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_22" port="Out" />
+ <destination model="Unit_23" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_23" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_23_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_23" port="Out" />
+ <destination model="Unit_24" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_24" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_24_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_24" port="Out" />
+ <destination model="Unit_25" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_25" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_25_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_25" port="Out" />
+ <destination model="Unit_26" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_26" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_26_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_26" port="Out" />
+ <destination model="Unit_27" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_27" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_27_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_27" port="Out" />
+ <destination model="Unit_28" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_28" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_28_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_3" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_3_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_3" port="Out" />
+ <destination model="Unit_4" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_4" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_4_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_4" port="Out" />
+ <destination model="Unit_5" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_5" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_5_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_5" port="Out" />
+ <destination model="Unit_6" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_6" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_6_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_6" port="Out" />
+ <destination model="Unit_7" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_7" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_7_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_7" port="Out" />
+ <destination model="Unit_8" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_8" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_8_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_8" port="Out" />
+ <destination model="Unit_9" port="In" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_9" port="AreaActive" />
+ <destination model="GenericSum" port="Unit_9_AreaActive" />
+</connection>
+<connection type="internal">
+ <origin model="Unit_9" port="Out" />
+ <destination model="Unit_10" port="In" />
+</connection>
+</connections>
+</model>
+</structures>
+<dynamics>
+<dynamic name="dCropClimate" library="CropClimate" package="archidemio"  />
+<dynamic name="dCropLeafArea" library="CropLeafArea" package="archidemio"  />
+<dynamic name="dCropPhenology" library="CropPhenology" package="archidemio"  />
+<dynamic name="dGenericSum" library="GenericSum" package="vle.discrete-time.generic"  />
+<dynamic name="dInitialization" library="Initialization" package="archidemio"  />
+<dynamic name="dMeteo" library="MeteoReader" package="record.meteo"  />
+<dynamic name="dUnit" library="Unit" package="archidemio"  />
+<dynamic name="dUnitPilot" library="UnitPilot" package="archidemio"  />
+<dynamic name="unknow" library=""  />
+</dynamics>
+<experiment name="dump"  >
+<conditions>
+<condition name="cCropClimate" >
+ <port name="sync_RH" >
+<boolean>true</boolean>
+</port>
+ <port name="sync_TempMean" >
+<boolean>true</boolean>
+</port>
+</condition>
+<condition name="cCropLeafArea" >
+ <port name="sync_CropAreaActive" >
+<boolean>true</boolean>
+</port>
+</condition>
+<condition name="cCropPhenology" >
+ <port name="sync_TempMax" >
+<boolean>true</boolean>
+</port>
+ <port name="sync_TempMin" >
+<boolean>true</boolean>
+</port>
+</condition>
+<condition name="cGenericSum" >
+ <port name="dyn_allow" >
+<boolean>true</boolean>
+</port>
+ <port name="dyn_sync" >
+<boolean>true</boolean>
+</port>
+</condition>
+<condition name="cMeteo" >
+ <port name="PkgName" >
+<string>archidemio</string>
+</port>
+ <port name="column_separator" >
+<string>;</string>
+</port>
+ <port name="day_column" >
+<string>JJ</string>
+</port>
+ <port name="meteo_file" >
+<string>MTP_2001.txt</string>
+</port>
+ <port name="meteo_type" >
+<string>generic_with_header</string>
+</port>
+ <port name="month_column" >
+<string>MM</string>
+</port>
+ <port name="year_column" >
+<string>AN</string>
+</port>
+</condition>
+<condition name="cParams" >
+ <port name="C_Crop" >
+<integer>2</integer>
+</port>
+ <port name="C_Density" >
+<double>80.000000000000000</double>
+</port>
+ <port name="E_InfectiousPeriod" >
+<double>10.000000000000000</double>
+</port>
+ <port name="E_InitQuantity" >
+<double>0.010000000000000</double>
+</port>
+ <port name="E_InitTime" >
+<double>50.000000000000000</double>
+</port>
+ <port name="E_LatentPeriod" >
+<double>3.000000000000000</double>
+</port>
+ <port name="E_OutDegree" >
+<integer>1</integer>
+</port>
+ <port name="E_RateAlloDeposition" >
+<double>0.400000000000000</double>
+</port>
+ <port name="E_RateAutoDeposition" >
+<double>0.600000000000000</double>
+</port>
+ <port name="E_TempInfectionOpt" >
+<double>25.000000000000000</double>
+</port>
+ <port name="E_TempInfectionWidth" >
+<double>0.002200000000000</double>
+</port>
+ <port name="P_AreaMax" >
+<double>1.000000000000000</double>
+</port>
+ <port name="P_ElongationMax" >
+<double>1.000000000000000</double>
+</port>
+ <port name="P_ElongationSlope" >
+<double>0.010000000000000</double>
+</port>
+ <port name="P_ElongationTT" >
+<double>300.000000000000000</double>
+</port>
+ <port name="P_ExpansionSlope" >
+<double>0.010000000000000</double>
+</port>
+ <port name="P_ExpansionTT" >
+<double>300.000000000000000</double>
+</port>
+ <port name="P_InitiationTT" >
+<tuple>70.000000000000000 70.000000000000000 70.000000000000000 50.000000000000000</tuple>
+</port>
+ <port name="P_Porosity" >
+<double>1.000000000000000</double>
+</port>
+ <port name="P_ReceptivityTT" >
+<double>500.000000000000000</double>
+</port>
+ <port name="P_ReproductiveTT" >
+<double>1500.000000000000000</double>
+</port>
+ <port name="P_SenescenceTT" >
+<double>1000.000000000000000</double>
+</port>
+ <port name="P_TempBase" >
+<double>4.000000000000000</double>
+</port>
+</condition>
+<condition name="cUnit" >
+ <port name="allow_update_In" >
+<boolean>true</boolean>
+</port>
+ <port name="sync_ActionTemp" >
+<boolean>true</boolean>
+</port>
+ <port name="sync_InitQuantity" >
+<boolean>true</boolean>
+</port>
+ <port name="sync_TempEff" >
+<boolean>true</boolean>
+</port>
+ <port name="sync_ThermalTime" >
+<boolean>true</boolean>
+</port>
+</condition>
+<condition name="cUnitPilot" >
+ <port name="sync_ThermalTime" >
+<boolean>true</boolean>
+</port>
+</condition>
+<condition name="simulation_engine" >
+ <port name="begin" >
+<double>0.000000000000000</double>
+</port>
+ <port name="duration" >
+<double>1.000000000000000</double>
+</port>
+</condition>
+</conditions>
+<views>
+</views>
+</experiment>
+</vle_project>

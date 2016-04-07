@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<vle_project version="1.0" author="Gauthier Quesnel" date="">
+ <structures>
+   <model name="top" x="0" y="0" height="300" type="coupled" width="300">
+   <in/>
+   <out/>
+   <submodels>
+    <model name="CropPhenology" x="202" y="183" conditions="cParams,cCropPhenology" dynamics="dCropPhenology" observables="oCropPhenology" height="50" type="atomic" width="50">
+     <in>
+      <port name="TempMax"/>
+      <port name="TempMin"/>
+     </in>
+     <out>
+      <port name="TempEff"/>
+      <port name="ThermalTime"/>
+      <port name="TempMean"/>
+     </out>
+    </model>
+    <model name="CropClimate" x="206" y="99" conditions="cParams,cCropClimate" dynamics="dCropClimate" observables="oCropClimate" height="50" type="atomic" width="50">
+     <in>
+      <port name="RH"/>
+      <port name="TempMean"/>
+     </in>
+     <out>
+      <port name="ActionRH"/>
+      <port name="ActionTemp"/>
+     </out>
+    </model>
+    <model name="Meteo" x="54" y="58" conditions="cMeteo,simulation_engine" dynamics="dMeteo" observables="oMeteo" height="85" type="atomic" width="50">
+     <in/>
+     <out>
+      <port name="tn"/>
+      <port name="tx"/>
+      <port name="etp"/>
+      <port name="rg"/>
+      <port name="p"/>
+      <port name="hr"/>
+     </out>
+    </model>
+    <model name="UnitPilot" x="380" y="109" conditions="cUnitPilot,cParams" dynamics="dUnitPilot" observables="oUnitPilot" height="50" type="atomic" width="128">
+     <in>
+      <port name="ThermalTime"/>
+     </in>
+     <out/>
+    </model>
+    <model name="Initialization" x="225" y="16" conditions="simulation_engine,cParams" dynamics="dInitialization" observables="" height="50" type="atomic" width="50">
+     <in/>
+     <out>
+      <port name="InitQuantity"/>
+     </out>
+    </model>
+   <model name="GenericSum" x="559" y="111" conditions="cGenericSum" dynamics="dGenericSum" observables="oGenericSum" height="50" type="atomic" width="50">
+     <in/>
+     <out>
+      <port name="Sum"/>
+     </out>
+    </model>
+   <model name="CropLeafArea" x="673" y="111" conditions="cParams,cCropLeafArea" dynamics="dCropLeafArea" observables="oCropLeafArea" height="50" type="atomic" width="50">
+     <in>
+      <port name="CropAreaActive"/>
+     </in>
+     <out/>
+    </model>
+   </submodels>
+   <connections>
+    <connection type="internal">
+     <origin port="hr" model="Meteo"/>
+     <destination port="RH" model="CropClimate"/>
+    </connection>
+    <connection type="internal">
+     <origin port="tn" model="Meteo"/>
+     <destination port="TempMin" model="CropPhenology"/>
+    </connection>
+    <connection type="internal">
+     <origin port="tx" model="Meteo"/>
+     <destination port="TempMax" model="CropPhenology"/>
+    </connection>
+    <connection type="internal">
+     <origin port="TempMean" model="CropPhenology"/>
+     <destination port="TempMean" model="CropClimate"/>
+    </connection>
+    <connection type="internal">
+     <origin port="ThermalTime" model="CropPhenology"/>
+     <destination port="ThermalTime" model="UnitPilot"/>
+    </connection>
+   <connection type="internal">
+     <origin port="Sum" model="GenericSum"/>
+     <destination port="CropAreaActive" model="CropLeafArea"/>
+    </connection>
+   </connections>
+  </model>
+ </structures>
+ <dynamics>
+ <dynamic name="dUnit" package="archidemio" library="Unit"/>
+  <dynamic name="dCropPhenology" package="archidemio" library="CropPhenology"/>
+  <dynamic name="dCropClimate" package="archidemio" library="CropClimate"/>
+ <dynamic name="dMeteo" package="record.meteo" library="MeteoReader"/>
+ <dynamic name="dUnitPilot" package="archidemio" library="UnitPilot"/>
+ <dynamic name="dInitialization" package="archidemio" library="Initialization"/>
+ <dynamic name="dGenericSum" package="vle.discrete-time.generic" library="GenericSum"/>
+ <dynamic name="dCropLeafArea" package="archidemio" library="CropLeafArea"/>
+ </dynamics>
+ <experiment name="1D" duration="149" seed="123456789" begin="2452015">
+   <conditions>
+    <condition name="simulation_engine">
+     <port name="begin">
+      <double>2452015</double>
+     </port>
+     <port name="duration">
+      <double>149</double>
+     </port>"
+    </condition>
+   <condition name="cUnit">
+    <port name="sync_TempEff">
+     <boolean>1</boolean>
+    </port>
+    <port name="sync_ThermalTime">
+     <boolean>1</boolean>
+    </port>
+    <port name="sync_ActionTemp">
+     <boolean>1</boolean>
+    </port>
+   <port name="sync_InitQuantity">
+     <boolean>1</boolean>
+    </port>
+   <port name="allow_update_In">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+   <condition name="cParams">
+    <port name="C_Crop">
+     <integer>2</integer>
+    </port>
+    <port name="C_Density">
+     <double>80</double>
+    </port>
+    <port name="E_InfectiousPeriod">
+     <double>10</double>
+    </port>
+    <port name="E_InitQuantity">
+     <double>0.01</double>
+    </port>
+    <port name="E_InitTime">
+     <double>50</double>
+    </port>
+    <port name="E_LatentPeriod">
+     <double>3</double>
+    </port>
+    <port name="E_OutDegree">
+     <integer>1</integer>
+    </port>
+    <port name="E_RateAlloDeposition">
+     <double>0.4</double>
+    </port>
+    <port name="E_RateAutoDeposition">
+     <double>0.6</double>
+    </port>
+    <port name="E_TempInfectionOpt">
+     <double>25</double>
+    </port>
+    <port name="E_TempInfectionWidth">
+     <double>0.0022</double>
+    </port>
+   <port name="P_AreaMax">
+     <double>1</double>
+    </port>
+    <port name="P_ElongationMax">
+     <double>1</double>
+    </port>
+    <port name="P_ElongationSlope">
+     <double>0.01</double>
+    </port>
+    <port name="P_ElongationTT">
+     <double>300</double>
+    </port>
+    <port name="P_ExpansionSlope">
+     <double>0.01</double>
+    </port>
+    <port name="P_ExpansionTT">
+     <double>300</double>
+    </port>
+    <port name="P_InitiationTT">
+     <tuple>70 70 70 50</tuple>
+    </port>
+   <port name="P_TempBase">
+     <double>4</double>
+    </port>
+    <port name="P_SenescenceTT">
+     <double>1000</double>
+    </port>
+    <port name="P_Porosity">
+     <double>1</double>
+    </port>
+    <port name="P_ReceptivityTT">
+     <double>500</double>
+    </port>
+   <port name="P_ReproductiveTT">
+     <double>1500</double>
+    </port>
+   </condition>
+  <condition name="cCropPhenology">
+    <port name="sync_TempMin">
+     <boolean>1</boolean>
+    </port>
+    <port name="sync_TempMax">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+  <condition name="cMeteo">
+    <port name="meteo_type">
+     <string>generic_with_header</string>
+    </port>
+    <port name="column_separator">
+     <string>;</string>
+    </port>
+    <port name="PkgName">
+     <string>archidemio</string>
+    </port>
+    <port name="meteo_file">
+     <string>MTP_2001.txt</string>
+    </port>
+   <port name="year_column">
+     <string>AN</string>
+    </port>
+    <port name="month_column">
+     <string>MM</string>
+    </port>
+    <port name="day_column">
+     <string>JJ</string>
+    </port>
+   </condition>
+  <condition name="cUnitPilot">
+    <port name="sync_ThermalTime">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+  <condition name="cCropClimate">
+    <port name="sync_TempMean">
+     <boolean>1</boolean>
+    </port>
+    <port name="sync_RH">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+  <condition name="cGenericSum">
+    <port name="dyn_allow">
+     <boolean>1</boolean>
+    </port>
+    <port name="dyn_sync">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+  <condition name="cCropLeafArea">
+    <port name="sync_CropAreaActive">
+     <boolean>1</boolean>
+    </port>
+   </condition>
+  </conditions>
+  <views>
+   <outputs>
+    <output format="local" plugin="file" name="view" package="vle.output" location="">
+     <map>
+      <key name="flush-by-bag">
+       <boolean>0</boolean>
+      </key>
+      <key name="julian-day">
+       <boolean>1</boolean>
+      </key>
+      <key name="locale">
+       <string>C</string>
+      </key>
+      <key name="output">
+       <string>file</string>
+      </key>
+      <key name="type">
+       <string>csv</string>
+      </key>
+     </map>
+    </output>
+   </outputs>
+   <view name="view" timestep="1" type="timed" output="view"/>
+   <observables>
+    <observable name="oUnit">
+     <port name="AreaActive">
+      <attachedview name="view"/>
+     </port>
+     <port name="AreaExpansion">
+      <attachedview name="view"/>
+     </port>
+     <port name="AreaRemoved">
+      <attachedview name="view"/>
+     </port>
+    <port name="InitQuantity">
+      <attachedview name="view"/>
+     </port>
+     <port name="InDeposition">
+      <attachedview name="view"/>
+     </port>
+     <port name="Out">
+      <attachedview name="view"/>
+     </port>
+     <port name="In">
+      <attachedview name="view"/>
+     </port>
+    <port name="OutDeposition">
+      <attachedview name="view"/>
+     </port>
+    <port name="RateAlloDeposition">
+      <attachedview name="view"/>
+     </port>
+     <port name="AreaInfectious">
+      <attachedview name="view"/>
+     </port>
+     <port name="Porosity">
+      <attachedview name="view"/>
+     </port>
+     <port name="RateAreaSenescence">
+      <attachedview name="view"/>
+     </port>
+     <port name="AreaLatent">
+      <attachedview name="view"/>
+     </port>
+     <port name="Receptivity">
+      <attachedview name="view"/>
+     </port>
+     <port name="AreaHealthy">
+      <attachedview name="view"/>
+     </port>
+     <port name="RateAreaExpansion">
+      <attachedview name="view"/>
+     </port>
+     <port name="RateAutoDeposition">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+   <observable name="oUnitPilot">
+     <port name="Index">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+   <observable name="oCropPhenology">
+     <port name="ThermalTime">
+      <attachedview name="view"/>
+     </port>
+     <port name="TempMean">
+      <attachedview name="view"/>
+     </port>
+    <port name="TempEff">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+    <observable name="oMeteo">
+     <port name="tx">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+   <observable name="oCropClimate">
+     <port name="ActionTemp">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+   <observable name="oGenericSum">
+     <port name="Sum">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+   <observable name="oCropLeafArea">
+     <port name="LAI">
+      <attachedview name="view"/>
+     </port>
+    </observable>
+   </observables>
+  </views>
+ </experiment>
+ <classes>
+  <class name="UnitClass">
+   <model name="Unit" x="0" y="0" conditions="cUnit,cParams" dynamics="dUnit" observables="oUnit" height="50" type="atomic" width="50">
+    <in>
+     <port name="ActionTemp"/>
+     <port name="TempEff"/>
+     <port name="ThermalTime"/>
+     <port name="In"/>
+    <port name="InitQuantity"/>
+    </in>
+    <out>
+     <port name="AreaActive"/>
+     <port name="Out"/>
+    </out>
+   </model>
+  </class>
+ </classes>
+</vle_project>

@@ -1,2 +1,0 @@
-INSTALL(FILES file.dat DESTINATION data)
-

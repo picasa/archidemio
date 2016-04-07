@@ -15,31 +15,52 @@ The model behavior was assessed by simulation and sensitivity analysis and these
 
 ### VLE+RECORD
 
-#### simulation platform (VLE 1.1)
+#### simulation platform (VLE 1.3)
 
-* follow instructions in VLE project [site](https://github.com/vle-forge/vle/wiki/Home-for-vle-1.1)
+* follow instructions in VLE project [site](http://www.vle-project.org/vle-13/)
 
 #### simulation and system packages
 
 ```
-echo 'vle.remote.url=http://www.vle-project.org/pub/1.1,http://recordb.toulouse.inra.fr/distributions/1.1' >> ~/.vle/vle.conf
+echo 'vle.remote.url=http://www.vle-project.org/pub/1.3,http://recordb.toulouse.inra.fr/distributions/1.3' >> ~/.vle/vle.conf
 vle -R update
 vle --remote update
+```
 
-vle --remote install vle.extension.difference-equation
-vle --remote install vle.extension.dsdevs
-vle --remote install vle.extension.fsa
-vle --remote install tester
-vle --remote install glue
-vle --remote install meteo
+For archidemio package:
+
+```
 vle --remote install vle.output
-sudo apt-get install libeigen2-dev
+vle --remote install vle.discrete-time
+vle --remote install vle.discrete-time.generic
+vle --remote install record.meteo
+```
+
+For achidemio test package:
+
+```
+vle --remote install vle.reader
+vle --remote install vle.tester
 ```
 
 ### archidemio model
 
+
 ```
 git clone git://github.com/picasa/archidemio.git
 cd ..
-vle -P archidemio configure build install
+```
+
+For simulating:
+
+```
+vle -P archidemio configure build
+vle -P archidemio 1D.vpz
+```
+
+For testing:
+
+```
+vle -P archidemio_test configure build
+vle -P archidemio_test test
 ```
