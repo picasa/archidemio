@@ -35,7 +35,7 @@ public:
         P_ExpansionTT = events.getDouble("P_ExpansionTT");
         P_ExpansionSlope = events.getDouble("P_ExpansionSlope");
         P_SenescenceTT = events.getDouble("P_SenescenceTT");
-        P_SenescenceSlope = events.getDouble("P_ExpansionSlope");
+        P_SenescenceSlope = events.getDouble("P_SenescenceSlope");
         P_ElongationMax = events.getDouble("P_ElongationMax");
         P_ElongationSlope = events.getDouble("P_ElongationSlope");
         P_ElongationTT = events.getDouble("P_ElongationTT");
@@ -182,6 +182,8 @@ public:
         RateAreaExpansion = TempEff() * (P_AreaMax * P_ExpansionSlope) *
                 exp(-P_ExpansionSlope * (ThermalAge() - P_ExpansionTT)) /
                 pow((1 + exp(-P_ExpansionSlope * (ThermalAge() - P_ExpansionTT))),2);
+
+
 
         /* Vitesse de senescence : pose un problème pour déterminer l'asymptote
          * (paramètre) alors qu'il depends de l'évolution de la maladie.
