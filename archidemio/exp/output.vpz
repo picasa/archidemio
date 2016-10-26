@@ -152,7 +152,7 @@
  <port name="tx" />
 </out>
 </model>
-<model name="UnitPilotGraph" type="atomic" conditions="cUnitPilot,cParams" dynamics="dUnitPilotGraph" observables="oUnitPilot" x="380" y="109" width="128" height="50" >
+<model name="UnitPilotGraph" type="atomic" conditions="cUnitPilot,cParams" dynamics="dUnitPilotGraph" observables="oUnitPilot" x="381" y="109" width="128" height="50" >
 <in>
  <port name="ThermalTime" />
 </in>
@@ -6921,11 +6921,15 @@
 <connections>
 <connection type="internal">
  <origin model="CropClimate" port="ActionTemp" />
- <destination model="node-1" port="ActionTemp" />
+ <destination model="node-15" port="ActionTemp" />
 </connection>
 <connection type="internal">
  <origin model="CropClimate" port="ActionTemp" />
  <destination model="node-0" port="ActionTemp" />
+</connection>
+<connection type="internal">
+ <origin model="CropClimate" port="ActionTemp" />
+ <destination model="node-1" port="ActionTemp" />
 </connection>
 <connection type="internal">
  <origin model="CropClimate" port="ActionTemp" />
@@ -6946,10 +6950,6 @@
 <connection type="internal">
  <origin model="CropClimate" port="ActionTemp" />
  <destination model="node-14" port="ActionTemp" />
-</connection>
-<connection type="internal">
- <origin model="CropClimate" port="ActionTemp" />
- <destination model="node-15" port="ActionTemp" />
 </connection>
 <connection type="internal">
  <origin model="CropClimate" port="ActionTemp" />
@@ -7321,11 +7321,15 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="TempEff" />
- <destination model="node-1" port="TempEff" />
+ <destination model="node-15" port="TempEff" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="TempEff" />
  <destination model="node-0" port="TempEff" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="TempEff" />
+ <destination model="node-1" port="TempEff" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="TempEff" />
@@ -7346,10 +7350,6 @@
 <connection type="internal">
  <origin model="CropPhenology" port="TempEff" />
  <destination model="node-14" port="TempEff" />
-</connection>
-<connection type="internal">
- <origin model="CropPhenology" port="TempEff" />
- <destination model="node-15" port="TempEff" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="TempEff" />
@@ -7725,7 +7725,7 @@
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
- <destination model="node-1" port="ThermalTime" />
+ <destination model="node-15" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
@@ -7734,6 +7734,10 @@
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
  <destination model="node-0" port="ThermalTime" />
+</connection>
+<connection type="internal">
+ <origin model="CropPhenology" port="ThermalTime" />
+ <destination model="node-1" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
@@ -7754,10 +7758,6 @@
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
  <destination model="node-14" port="ThermalTime" />
-</connection>
-<connection type="internal">
- <origin model="CropPhenology" port="ThermalTime" />
- <destination model="node-15" port="ThermalTime" />
 </connection>
 <connection type="internal">
  <origin model="CropPhenology" port="ThermalTime" />
@@ -8133,15 +8133,15 @@
 </connection>
 <connection type="internal">
  <origin model="Initialization" port="InitQuantity" />
- <destination model="node-4" port="InitQuantity" />
+ <destination model="node-20" port="InitQuantity" />
 </connection>
 <connection type="internal">
  <origin model="Initialization" port="InitQuantity" />
- <destination model="node-55" port="InitQuantity" />
+ <destination model="node-28" port="InitQuantity" />
 </connection>
 <connection type="internal">
  <origin model="Initialization" port="InitQuantity" />
- <destination model="node-74" port="InitQuantity" />
+ <destination model="node-73" port="InitQuantity" />
 </connection>
 <connection type="internal">
  <origin model="Meteo" port="hr" />
@@ -8265,11 +8265,11 @@
 </connection>
 <connection type="internal">
  <origin model="node-14" port="Out" />
- <destination model="node-13" port="node-14" />
+ <destination model="node-15" port="node-14" />
 </connection>
 <connection type="internal">
  <origin model="node-14" port="Out" />
- <destination model="node-15" port="node-14" />
+ <destination model="node-13" port="node-14" />
 </connection>
 <connection type="internal">
  <origin model="node-14" port="Out" />
@@ -10074,7 +10074,7 @@
 <double>0.002200000000000</double>
 </port>
  <port name="E_InitSpace" >
-<tuple>4.000000000000000 55.000000000000000 74.000000000000000</tuple>
+<tuple>20.000000000000000 28.000000000000000 73.000000000000000</tuple>
 </port>
  <port name="C_Density" >
 <double>10.000000000000000</double>
@@ -10083,22 +10083,22 @@
 <integer>1</integer>
 </port>
  <port name="E_TempInfectionOpt" >
-<double>25.000000000000000</double>
+<double>27.000000000000000</double>
 </port>
  <port name="E_InitQuantity" >
 <double>0.010000000000000</double>
 </port>
  <port name="P_ExpansionSlope" >
-<double>0.015000000000000</double>
+<double>0.004000000000000</double>
 </port>
  <port name="E_InitTime" >
-<double>50.000000000000000</double>
+<double>100.000000000000000</double>
 </port>
  <port name="E_LatentPeriod" >
-<double>5.000000000000000</double>
+<double>7.000000000000000</double>
 </port>
  <port name="E_RateAutoDeposition" >
-<double>0.600000000000000</double>
+<double>0.230000000000000</double>
 </port>
  <port name="P_ElongationMax" >
 <double>1.000000000000000</double>
@@ -10107,16 +10107,16 @@
 <double>0.900000000000000</double>
 </port>
  <port name="P_ElongationTT" >
-<double>1000.000000000000000</double>
+<double>3000.000000000000000</double>
 </port>
  <port name="P_SenescenceTT" >
-<double>2500.000000000000000</double>
+<double>4500.000000000000000</double>
 </port>
  <port name="P_ElongationSlope" >
-<double>0.015000000000000</double>
+<double>0.004000000000000</double>
 </port>
  <port name="P_ExpansionTT" >
-<double>1000.000000000000000</double>
+<double>3000.000000000000000</double>
 </port>
  <port name="P_AreaMax" >
 <double>1.000000000000000</double>
@@ -10125,13 +10125,13 @@
 <double>1500.000000000000000</double>
 </port>
  <port name="P_ReceptivityTT" >
-<double>500.000000000000000</double>
+<double>3500.000000000000000</double>
 </port>
  <port name="E_RateAlloDeposition" >
-<double>0.500000000000000</double>
+<double>0.210000000000000</double>
 </port>
  <port name="P_SenescenceSlope" >
-<double>0.015000000000000</double>
+<double>0.010000000000000</double>
 </port>
  <port name="P_TempBase" >
 <double>4.000000000000000</double>
@@ -10140,7 +10140,7 @@
 <tuple>70.000000000000000 70.000000000000000 70.000000000000000 50.000000000000000</tuple>
 </port>
  <port name="E_InfectiousPeriod" >
-<double>10.000000000000000</double>
+<double>20.000000000000000</double>
 </port>
  <port name="E_OutDegree" >
 <integer>1</integer>
@@ -10174,7 +10174,7 @@
 <string>;</string>
 </port>
  <port name="meteo_file" >
-<string>MTP_2001.txt</string>
+<string>meteo_PB_2010.txt</string>
 </port>
  <port name="meteo_type" >
 <string>generic_with_header</string>
