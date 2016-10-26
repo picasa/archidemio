@@ -10,8 +10,7 @@
  * @@tagdepends: vle.discrete-time @@endtagdepends
  */
 
-#include <vle/DiscreteTimeDbg.hpp>
-#include <vle/devs/DynamicsDbg.hpp>
+#include <vle/DiscreteTime.hpp>
 
 #include <vle/utils/DateTime.hpp>
 #include <iomanip>

@@ -1,9 +1,12 @@
 /*
- * @@tagdepends: vle.discrete-time @@endtagdepends
+ * @@tagdepends: vle.discrete-time, ext.Eigen @@endtagdepends
  */
 
 #include <vle/utils/DateTime.hpp>
+#include <vle/utils/Tools.hpp>
 #include <vle/devs/Executive.hpp>
+#include <vle/value/Tuple.hpp>
+
 #include <vle/discrete-time/DiscreteTimeExec.hpp>
 #include "GraphTranslator.hpp"
 
@@ -53,12 +56,13 @@ public:
         std::vector < unsigned int >::const_iterator itb;
         for (itb = E_InitSpace.begin(); itb != E_InitSpace.end(); ++itb) {
             addConnection("Initialization", "InitQuantity",
-                    (vle::fmt("%1%-%2%") % prefix % (*itb)).str(), "InitQuantity");
+                    vle::utils::format("%s-%d", prefix.c_str(), (*itb)), "InitQuantity");
         }
 
         // Ajout des connexions modeles DE -> EXE
         for (int i = 0; i!=number; i++) {
-            const std::string current = (vle::fmt("%1%-%2%") % prefix % i).str();
+            const std::string current =
+                    vle::utils::format("%s-%d", prefix.c_str(), i);
 
             addConnection("CropClimate", "ActionTemp", current, "ActionTemp");
             addConnection("CropPhenology", "TempEff", current, "TempEff");
@@ -66,11 +70,11 @@ public:
 
             // Creation des ports entrants sur le modele de somme (passage unite -> couvert)
             addInputPort("GenericSum",
-                    (vle::fmt("%1%_AreaActive") % current).str());
+                    vle::utils::format("%s_AreaActive", current.c_str()));
 
             // Creation des connexions sortantes
             addConnection(current, "AreaActive", "GenericSum",
-                    (vle::fmt("%1%_AreaActive") % current).str());
+                    vle::utils::format("%s_AreaActive", current.c_str()));
         }
 
         std::ofstream file("archidemio/exp/output.vpz");

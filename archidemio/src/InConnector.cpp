@@ -1,6 +1,6 @@
 /*
  * @@tagdynamic@@
- * @@tagdepends: vle.discrete-time @@endtagdepends
+ * @@tagdepends: vle.discrete-time, ext.Eigen @@endtagdepends
  */
 
 #include <vle/utils/DateTime.hpp>

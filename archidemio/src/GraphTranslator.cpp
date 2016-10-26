@@ -23,6 +23,8 @@
 
 #include "GraphTranslator.hpp"
 #include <vle/utils/Exception.hpp>
+#include <vle/value/Tuple.hpp>
+#include <vle/value/Map.hpp>
 #include <boost/format.hpp>
 #include <fstream>
 #include <vector>
@@ -116,7 +118,7 @@ public:
     Node& operator[](int index)
     {
         if (index < 0 or index >= (int)size()) {
-            throw vle::utils::ArgError();
+            throw vle::utils::ArgError("bad index in GraphTranslator (1)");
         }
 
         return mLst[index];
@@ -125,7 +127,7 @@ public:
     const Node& operator[](int index) const
     {
         if (index < 0 or index >= (int)size()) {
-            throw vle::utils::ArgError();
+            throw vle::utils::ArgError("bad index in GraphTranslator (2)");
         }
 
         return mLst[index];
@@ -135,7 +137,7 @@ public:
             const std::string& classname)
     {
         if (index < 0 or index >= (int)size()) {
-            throw vle::utils::ArgError();
+            throw vle::utils::ArgError("bad index in GraphTranslator (3)");
         }
 
         mLst[index] = Node(name, index, classname);
@@ -504,7 +506,7 @@ private:
         }
 
         if (init.exist("nodes")) {
-            const vle::value::MapValue classes =
+            const vle::value::MapValue& classes =
                     vle::value::toMap(init.get("nodes"));
 
             for (vle::value::MapValue::const_iterator it = classes.begin();

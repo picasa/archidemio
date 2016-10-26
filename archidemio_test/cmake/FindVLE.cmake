@@ -3,7 +3,7 @@
 #
 # Try to find VLE
 #
-# Copyright 2012-2014 INRA
+# Copyright 2012-2016 INRA
 # Gauthier Quesnel <quesnel@users.sourceforge.net>
 # Ronan Trépos <ronan.trepos@toulouse.inra.fr>
 #
@@ -137,7 +137,11 @@ if (${_find_vle_using_cmake})
 else (${_find_vle_using_cmake})
   find_package(PkgConfig REQUIRED)
   PKG_CHECK_MODULES(VLE vle-${VLE_ABI_VERSION})
-  set (VLE_SHARE_DIR "${VLE_LIBRARY_DIRS}/../share/vle-${VLE_ABI_VERSION}")
+  # select only the directory of vle, containing the pkgs directory
+  # to build VLE_SHARE_DIR
+  find_path(vle_lib_dir vle-${VLE_ABI_VERSION} PATHS
+            ${VLE_LIBRARY_DIRS} NO_DEFAULT_PATH)
+  set (VLE_SHARE_DIR "${vle_lib_dir}/../share/vle-${VLE_ABI_VERSION}")
 endif (${_find_vle_using_cmake})
 
 

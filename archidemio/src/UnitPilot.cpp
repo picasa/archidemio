@@ -4,8 +4,11 @@
  * @@tagdepends: vle.discrete-time @@endtagdepends
  */
 
+#include <numeric>
 #include <vle/utils/DateTime.hpp>
+#include <vle/utils/Tools.hpp>
 #include <vle/devs/Executive.hpp>
+#include <vle/value/Tuple.hpp>
 #include <vle/discrete-time/DiscreteTimeExec.hpp>
 
 #include <fstream>
@@ -89,8 +92,10 @@ public:
             }
             //add a unit if required
             if (CropState() != REPRODUCITVE) {
-                std::string previous((vle::fmt("Unit_%1%") % (Index(-1)-1)).str());
-                std::string current((vle::fmt("Unit_%1%") % (Index()-1)).str());
+                std::string previous(
+                        vle::utils::format("Unit_%d", (int)(Index(-1)-1)));
+                std::string current(
+                        vle::utils::format("Unit_%d", (int)(Index()-1)));
 
                 createModelFromClass("UnitClass", current);
                 addConnection("CropClimate", "ActionTemp",
@@ -106,10 +111,10 @@ public:
                 }
 
                 addInputPort("GenericSum",
-                        (vle::fmt("%1%_AreaActive") % current).str());
+                        vle::utils::format("%s_AreaActive", current.c_str()));
 
                 addConnection(current, "AreaActive", "GenericSum",
-                        (vle::fmt("%1%_AreaActive") % current).str());
+                        vle::utils::format("%s_AreaActive", current.c_str()));
 
                 std::ofstream file("archidemio/exp/output.vpz");
                 dump(file, "dump");

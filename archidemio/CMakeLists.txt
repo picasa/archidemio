@@ -1,7 +1,9 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-PROJECT(MyProject CXX C)
+PROJECT(archidemio CXX C)
 set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 ENABLE_TESTING()
+
+set( CMAKE_VERBOSE_MAKEFILE OFF )
 
 SET(MODEL_MAJOR 0)
 SET(MODEL_MINOR 1)
@@ -45,10 +47,23 @@ endif ()
 ## Modules
 ##
 
-INCLUDE(CheckIncludeFileCXX)
-INCLUDE(CheckIncludeFile)
-INCLUDE(CheckLibraryExists)
-INCLUDE(CMakeDetermineCCompiler)
+include(CheckIncludeFileCXX)
+include(CheckIncludeFile)
+include(CheckLibraryExists)
+include(CMakeDetermineCCompiler)
+include(CheckCXXCompilerFlag)
+
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+CHECK_CXX_COMPILER_FLAG("-std=c++1y" COMPILER_SUPPORTS_CXX1Y)
+
+if (COMPILER_SUPPORTS_CXX14)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+elseif(COMPILER_SUPPORTS_CXX1Y)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1y")
+else()
+  message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++14/1y support.
+                 Please use a different C++ compiler.")
+endif()
 
 ##
 ## cmake policy
@@ -63,7 +78,7 @@ endif (COMMAND CMAKE_POLICY)
 ##
 
 set(VLE_DEBUG 0)
-set(VLE_ABI_VERSION 1.3)
+set(VLE_ABI_VERSION 2.0)
 find_package(VLE REQUIRED)
 set (VleUtils_DIR "${VLE_SHARE_DIR}/cmake")
 set (CMAKE_MODULE_PATH ${VLE_SHARE_DIR}/cmake ${CMAKE_MODULE_PATH})
@@ -166,6 +181,9 @@ endif ()
 
 if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/data")
   add_subdirectory(data)
+endif ()
+if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/metadata")
+  add_subdirectory(metadata)
 endif ()
 if (WITH_DOC)
   if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/doc")
