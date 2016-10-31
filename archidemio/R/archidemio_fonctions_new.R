@@ -1,4 +1,7 @@
 require(rvle)
+
+### Mise en forme des résultats de simuation pour sortie graphique ###
+
 require(reshape2)
 
 rvle.shape <- function (
@@ -61,36 +64,125 @@ rvle.shape.grid <- function (object, nExec) {
   return(d)
 }
 
-#'
+
 #' transform a date in julian day
 #'  input : "2014-01-01"  
 #'  output : 2456659
-#'
+
 getDateNum = function (dateStr)
 {
   return (as.numeric(as.Date(dateStr, format="%Y-%m-%d") + 2440588));
 }
 
-#'
+
 #' transform a date of the form 2456659 into an object Date
 #'  @param : dateNum eg:2456659  
 #'  @return  : eg. as.Date("2014-01-01")
-#' 
+ 
 getDate = function(dateNum)
 {
   return(as.Date(as.Date(dateNum, origin="1970-01-01") - 2440588));
 }
 
-#'
 #' transform a date of the form 2456659 into string "2014-01-01"
 #'  @param : dateNum eg:2456659  
 #'  @param : format of output
 #'  @return  : eg. "2014-01-01" 
-#'
+
 getDateStr = function(dateNum, outFormat="%Y-%m-%d")
 {
   return (format(getDate(dateNum),
                  format= outFormat)) ;
-  
 }
 
+### Production de matrices de voisinage pour UnitPilot ###
+voisinage= function( X = matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE), nbligne = 5, nbcolonne = 4, verbose = FALSE) {
+  
+  # X = matrice à 2 colonnes caractérisant les connexions
+  # nbligne  = nombre de lignes du réseau
+  # nbcolonne = nombre de colonnes du réseau
+  
+  nbl.expand = nbligne+diff(range(X[,2]))
+  nbc.expand = nbcolonne+diff(range(X[,1]))
+  dim.max = nbc.expand * nbl.expand
+  vecteur = rep(0, dim.max)
+  decal.col = - min(X[,1]) + 1
+  decal.lig = + max(X[,2]) + 1
+  
+  Xb = X
+  Xb[,1] = Xb[,1] + decal.col
+  Xb[,2] = - Xb[,2] + decal.lig
+  
+  # En fait ce sont les numeros des indices
+  decalage = c(decal.col, decal.lig)
+  
+  # Numéros des points appartenant au domaine d'étude à l'intérieur du domaine étendu
+  numeros.valide = matrix(seq(1,dim.max),ncol= nbc.expand, byrow=TRUE)
+  numeros.valide = numeros.valide[seq(decalage[2],length= nbligne),seq(decalage[1],length = nbcolonne)]
+  
+  # suite est dans l'ordre de lecture de gauche à droite, de haut en bas
+  suite = (Xb[,2] - 1)* nbc.expand  + Xb[,1] 
+  # récupération des seuls points valides toujours dans l'ordre de lecture
+  # vecteur contient les connexions du point supérieur gauche du domaine
+  # avec les points du domaine étendu
+  vecteur[suite] = 1
+  
+  # matrice des connexions 
+  # indices dans l'ordre de lecture
+  connexion = list()
+  connexion[[1]] = NULL
+  
+  for(i in 2:(nbligne*nbc.expand))  connexion[[i]] = rep(0,length=i-1)
+  connexion = t(sapply(connexion,function(v) c(v,vecteur)[1:dim.max]))
+  
+  lignes.valide = matrix(FALSE,ncol = nbc.expand, nrow= nbligne)
+  lignes.valide[seq(1,length=nbligne),seq(1,length=nbcolonne)] = TRUE
+  lignes.valide = c(t(lignes.valide))
+  
+  connexion.fin = connexion[lignes.valide,c(t(numeros.valide))]
+  
+  if(verbose) 
+    list(numeros.valide = c(t(numeros.valide)),  connexion = connexion.fin, vecteur = vecteur, voisins = X, nbligne = nbligne, nbcolonne = nbcolonne, Xb=Xb, suite=suite, nbl.expand = nbl.expand, nbc.expand = nbc.expand, decalage=decalage, dim.max=dim.max)
+  else
+    connexion.fin
+}
+
+## rvle.setTranslator() : attribue des conditions pour l'extension GraphTranslator à un objet VLE
+getAdjacency <- function (
+  n, type="lattice", 
+  neighbour=matrix(c(0,1,0,-1,1,0,-1,0),ncol=2,byrow=TRUE) # 4 voisins
+) {
+  
+  ## Construction de la matrice d'adjacence (A)
+  # Grille 4 voisins, dirig?
+  if (type=="lattice") {
+    G <- graph.lattice(c(sqrt(n),sqrt(n)), directed=T, mutual=T)
+    A <- get.adjacency(G)
+    
+  }
+  
+  # Graphe complet
+  if (type=="full") {
+    G <- graph.full(n, directed = F, loops = F)
+    A <- get.adjacency(G)
+    
+  }	
+  
+  # Grille selon un voisinage (émission) défini.
+  if (type=="custom") {
+    A = voisinage(neighbour, nbcolonne=sqrt(n), nbligne=sqrt(n))
+  }
+  
+  # Small-World.
+  if (type=="smallworld") {
+    G = watts.strogatz.game(dim=1, size=n, nei=8, p=0.01)
+    A = get.adjacency(G)
+  }
+  
+  # Noms lignes + colonnes
+  rownames(A)<-c(1:n)-1
+  colnames(A)<-c(1:n)-1
+  
+  # Sortie
+  return(A)
+}
