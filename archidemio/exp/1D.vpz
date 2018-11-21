@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<vle_project version="1.0" author="Gauthier Quesnel" date="">
+<?xml version='1.0' encoding='UTF-8'?>
+<vle_project version="1.0" date="" author="Gauthier Quesnel">
  <structures>
-   <model name="top" x="0" y="0" height="300" type="coupled" width="300">
+   <model width="300" height="300" x="0" y="0" name="top" type="coupled">
    <in/>
    <out/>
    <submodels>
-    <model name="CropPhenology" conditions="cParams,cCropPhenology" x="202" observables="oCropPhenology" y="183" height="50" type="atomic" width="50" dynamics="dCropPhenology">
+    <model observables="oCropPhenology" conditions="cParams,cCropPhenology" width="50" dynamics="dCropPhenology" height="50" x="202" y="183" name="CropPhenology" type="atomic">
      <in>
       <port name="TempMax"/>
       <port name="TempMin"/>
@@ -16,7 +16,7 @@
       <port name="TempMean"/>
      </out>
     </model>
-    <model name="CropClimate" conditions="cParams,cCropClimate" x="206" observables="oCropClimate" y="99" height="50" type="atomic" width="50" dynamics="dCropClimate">
+    <model observables="oCropClimate" conditions="cParams,cCropClimate" width="50" dynamics="dCropClimate" height="50" x="206" y="99" name="CropClimate" type="atomic">
      <in>
       <port name="RH"/>
       <port name="TempMean"/>
@@ -26,7 +26,7 @@
       <port name="ActionTemp"/>
      </out>
     </model>
-    <model name="Meteo" conditions="cMeteo,simulation_engine" x="54" observables="oMeteo" y="58" height="85" type="atomic" width="50" dynamics="dMeteo">
+    <model observables="oMeteo" conditions="cMeteo,simulation_engine" width="50" dynamics="dMeteo" height="85" x="54" y="58" name="Meteo" type="atomic">
      <in/>
      <out>
       <port name="tn"/>
@@ -37,25 +37,25 @@
       <port name="hr"/>
      </out>
     </model>
-    <model name="UnitPilot" conditions="cUnitPilot,cParams" x="380" observables="oUnitPilot" y="109" height="50" type="atomic" width="128" dynamics="dUnitPilot">
+    <model observables="oUnitPilot" conditions="cUnitPilot,cParams" width="128" dynamics="dUnitPilot" height="50" x="380" y="109" name="UnitPilot" type="atomic">
      <in>
       <port name="ThermalTime"/>
      </in>
      <out/>
     </model>
-    <model name="Initialization" conditions="simulation_engine,cParams" x="225" observables="" y="16" height="50" type="atomic" width="50" dynamics="dInitialization">
+    <model observables="" conditions="simulation_engine,cParams" width="50" dynamics="dInitialization" height="50" x="225" y="16" name="Initialization" type="atomic">
      <in/>
      <out>
       <port name="InitQuantity"/>
      </out>
     </model>
-   <model name="GenericSum" conditions="cGenericSum" x="559" observables="oGenericSum" y="111" height="50" type="atomic" width="50" dynamics="dGenericSum">
+   <model observables="oGenericSum" conditions="cGenericSum" width="50" dynamics="dGenericSum" height="50" x="559" y="111" name="GenericSum" type="atomic">
      <in/>
      <out>
       <port name="Sum"/>
      </out>
     </model>
-   <model name="CropLeafArea" conditions="cParams,cCropLeafArea" x="673" observables="oCropLeafArea" y="111" height="50" type="atomic" width="50" dynamics="dCropLeafArea">
+   <model observables="oCropLeafArea" conditions="cParams,cCropLeafArea" width="50" dynamics="dCropLeafArea" height="50" x="673" y="111" name="CropLeafArea" type="atomic">
      <in>
       <port name="CropAreaActive"/>
      </in>
@@ -91,25 +91,28 @@
   </model>
  </structures>
  <dynamics>
- <dynamic name="dUnit" library="Unit" package="archidemio"/>
-  <dynamic name="dCropPhenology" library="CropPhenology" package="archidemio"/>
-  <dynamic name="dCropClimate" library="CropClimate" package="archidemio"/>
- <dynamic name="dMeteo" library="MeteoReader" package="record.meteo"/>
- <dynamic name="dUnitPilot" library="UnitPilot" package="archidemio"/>
- <dynamic name="dInitialization" library="Initialization" package="archidemio"/>
- <dynamic name="dGenericSum" library="GenericSum" package="vle.discrete-time.generic"/>
- <dynamic name="dCropLeafArea" library="CropLeafArea" package="archidemio"/>
+ <dynamic library="Unit" package="archidemio" name="dUnit"/>
+  <dynamic library="CropPhenology" package="archidemio" name="dCropPhenology"/>
+  <dynamic library="CropClimate" package="archidemio" name="dCropClimate"/>
+ <dynamic library="MeteoReader" package="record.meteo" name="dMeteo"/>
+ <dynamic library="UnitPilot" package="archidemio" name="dUnitPilot"/>
+ <dynamic library="Initialization" package="archidemio" name="dInitialization"/>
+ <dynamic library="Sum" package="vle.discrete-time.generic" name="dGenericSum"/>
+ <dynamic library="CropLeafArea" package="archidemio" name="dCropLeafArea"/>
  </dynamics>
- <experiment begin="2452015" name="1D" duration="149" seed="123456789">
+ <experiment duration="149" begin="2452015" name="1D" seed="123456789">
    <conditions>
     <condition name="simulation_engine">
      <port name="begin">
-      <double>2452015</double>
+      <double>0</double>
      </port>
      <port name="duration">
-      <double>149</double>
+      <double>150</double>
      </port>"
-    </condition>
+    <port name="begin_date">
+     <string>2001-04-15</string>
+    </port>
+   </condition>
    <condition name="cUnit">
     <port name="sync_TempEff">
      <boolean>1</boolean>
@@ -261,7 +264,7 @@
   </conditions>
   <views>
    <outputs>
-    <output name="view" location="" format="local" package="vle.output" plugin="file">
+    <output format="local" plugin="file" package="vle.output" name="view" location="">
      <map>
       <key name="flush-by-bag">
        <boolean>0</boolean>
@@ -281,7 +284,7 @@
      </map>
     </output>
    </outputs>
-   <view name="view" timestep="1" output="view" type="timed"/>
+   <view timestep="1" name="view" output="view" type="timed"/>
    <observables>
     <observable name="oUnit">
      <port name="AreaActive">
@@ -380,7 +383,7 @@
  </experiment>
  <classes>
   <class name="UnitClass">
-   <model name="Unit" conditions="cUnit,cParams" x="0" observables="oUnit" y="0" height="50" type="atomic" width="50" dynamics="dUnit">
+   <model observables="oUnit" conditions="cUnit,cParams" width="50" dynamics="dUnit" height="50" x="0" y="0" name="Unit" type="atomic">
     <in>
      <port name="ActionTemp"/>
      <port name="TempEff"/>

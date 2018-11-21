@@ -3,8 +3,6 @@ PROJECT(archidemio CXX C)
 set (CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 ENABLE_TESTING()
 
-set( CMAKE_VERBOSE_MAKEFILE OFF )
-
 SET(MODEL_MAJOR 0)
 SET(MODEL_MINOR 1)
 SET(MODEL_PATCH 0)
@@ -72,14 +70,12 @@ if (COMMAND CMAKE_POLICY)
   cmake_policy(SET CMP0020 NEW)#for qt link
 endif (COMMAND CMAKE_POLICY)
 
-
 ##
 ## Check VLE and package dependencies
 ##
 
-set(VLE_DEBUG 0)
-set(VLE_ABI_VERSION 2.0)
-find_package(VLE REQUIRED)
+set(VLE_DEBUG 1)
+find_package(VLE 2.1 REQUIRED)
 set (VleUtils_DIR "${VLE_SHARE_DIR}/cmake")
 set (CMAKE_MODULE_PATH ${VLE_SHARE_DIR}/cmake ${CMAKE_MODULE_PATH})
 find_package(VleUtils REQUIRED)
@@ -98,15 +94,6 @@ if (WITH_GVLE)
     message (WARNING "GVLE not found!")
   endif ()
 endif ()
-
-##
-## Find boost
-##
-
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREAD ON)
-find_package(Boost COMPONENTS unit_test_framework date_time thread
-  system filesystem)
 
 ##
 ## Find Qt
@@ -196,12 +183,11 @@ endif ()
 if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/src")
   add_subdirectory(src)
 endif ()
-
-if (Boost_UNIT_TEST_FRAMEWORK_FOUND AND WITH_TEST)
+if (WITH_TEST)
   if (IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test")
     add_subdirectory(test)
   endif ()
-endif (Boost_UNIT_TEST_FRAMEWORK_FOUND AND WITH_TEST)
+endif ()
 
 ##
 ## CPack configuration

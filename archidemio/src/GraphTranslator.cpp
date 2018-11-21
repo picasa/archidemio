@@ -232,7 +232,7 @@ Connection& Connection::operator=(const Connection& other)
 class DynamicGraphTranslator::Pimpl
 {
 public:
-    Pimpl(const vle::value::Map& buffer)
+    Pimpl(const vle::devs::InitEventList& buffer)
 : mConnectionType(CONNECTION_TYPE_IN_NAMED),
   mPrefix("node"),
   mDefaultClassName("class"),
@@ -456,11 +456,11 @@ private:
         }
     }
 
-    void init(const vle::value::Map& buffer)
+    void init(const vle::devs::InitEventList& buffer)
     {
-        const vle::value::Map& init = vle::value::toMapValue(buffer);
+        //const vle::value::Map& init = vle::value::toMapValue(buffer);
 
-        int nodeNumber = vle::value::toInteger(init.get("number"));
+        int nodeNumber = vle::value::toInteger(buffer.get("number"));
         if (nodeNumber <= 0) {
             throw vle::utils::ArgError("GraphTranslator: bad node number");
         } else {
@@ -469,15 +469,15 @@ private:
             mAssociation.resize(mPrefix, nodeNumber);
         }
 
-        if (init.exist("prefix")) {
-            mPrefix = toString(init.get("prefix"));
+        if (buffer.exist("prefix")) {
+            mPrefix = toString(buffer.get("prefix"));
             if (mPrefix.empty()) {
                 throw vle::utils::ArgError("GraphTranslator: bad prefix");
             }
         }
 
-        if (init.exist("port")) {
-            std::string port = toString(init.get("port"));
+        if (buffer.exist("port")) {
+            std::string port = toString(buffer.get("port"));
             if (port == "In") {
                 mConnectionType = CONNECTION_TYPE_IN_NAMED;
             } else if (port == "Out") {
@@ -490,7 +490,7 @@ private:
         }
 
         const vle::value::TupleValue adjmat =
-                vle::value::toTuple(init.get("adjacencyMatrix"));
+                vle::value::toTuple(buffer.get("adjacencyMatrix"));
 
         if ((int)adjmat.size() != mCacheMatrix.cols() * mCacheMatrix.rows()) {
             throw vle::utils::ArgError(
@@ -500,14 +500,14 @@ private:
         std::copy(adjmat.begin(), adjmat.end(), mCacheMatrix.data());
         //mCurrentMatrix = mCacheMatrix;
 
-        if (init.exist("defaultClassname")) {
+        if (buffer.exist("defaultClassname")) {
             mDefaultClassName =
-                    vle::value::toString(init.get("defaultClassname"));
+                    vle::value::toString(buffer.get("defaultClassname"));
         }
 
-        if (init.exist("nodes")) {
+        if (buffer.exist("nodes")) {
             const vle::value::MapValue& classes =
-                    vle::value::toMap(init.get("nodes"));
+                    vle::value::toMap(buffer.get("nodes"));
 
             for (vle::value::MapValue::const_iterator it = classes.begin();
                     it != classes.end(); ++it) {
@@ -529,7 +529,8 @@ private:
     }
 };
 
-DynamicGraphTranslator::DynamicGraphTranslator(const vle::value::Map& buffer)
+DynamicGraphTranslator::DynamicGraphTranslator(
+    const vle::devs::InitEventList& buffer)
 : mPimpl(new DynamicGraphTranslator::Pimpl(buffer))
 {
 }

@@ -102,7 +102,7 @@ typedef std::vector < Connection > ConnectionList;
 class DynamicGraphTranslator
 {
 public:
-    explicit DynamicGraphTranslator(const vle::value::Map& buffer);
+    explicit DynamicGraphTranslator(const vle::devs::InitEventList& buffer);
 
     ~DynamicGraphTranslator();
 
